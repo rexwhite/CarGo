@@ -3,12 +3,9 @@
   "version": "1.0.0",
   "description": "A vehicle maintenance tracking website",
   "main": "app.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "Rex White",
   "license": "Apache-2.0",
-  "dependencies": {
-    "express": "^5.1.0"
+  "scripts": {
+    "start": "cd backend && npm run deploy"
   }
 }
