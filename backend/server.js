@@ -16,20 +16,8 @@ const pool = new Pool({
 
 app.use(express.json());
 
-// API routes
-app.get('/api/hello', (req, res) => {
-  res.json({ message: 'Hello from CarGo!' });
-});
-
-app.get('/api/cars', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM cars ORDER BY id');
-    res.json(result.rows);
-  } catch (err) {
-    console.error('Error fetching cars:', err);
-    res.status(500).json({ error: 'Failed to fetch cars' });
-  }
-});
+// Mount API routes
+app.use('/api', require('./api')(pool));
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../frontend/build')));
