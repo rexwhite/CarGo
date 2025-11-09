@@ -4,6 +4,7 @@ import './App.css';
 function App() {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCar, setSelectedCar] = useState(null);
 
   useEffect(() => {
     fetch('/api/cars')
@@ -18,6 +19,40 @@ function App() {
       });
   }, []);
 
+  const handleRowClick = (car) => {
+    setSelectedCar(car);
+  };
+
+  const handleBack = () => {
+    setSelectedCar(null);
+  };
+
+  if (selectedCar) {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <img src="/CarGo.png" alt="CarGo Logo" style={{ height: '100px', marginBottom: '10px' }} />
+          <h1>CarGo</h1>
+          <h2>Car Details</h2>
+        </header>
+        <main style={{ padding: '20px' }}>
+          <button onClick={handleBack} className="back-button">
+            ← Back to Cars
+          </button>
+          <div className="car-details-card">
+            <h2>{selectedCar.name}</h2>
+            <div className="car-details-info">
+              <p><strong>Make:</strong> {selectedCar.make}</p>
+              <p><strong>Model:</strong> {selectedCar.model}</p>
+              <p><strong>Year:</strong> {selectedCar.year}</p>
+              <p><strong>Mileage:</strong> {selectedCar.mileage.toLocaleString()} mi</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -29,28 +64,24 @@ function App() {
         {loading ? (
           <p>Loading cars...</p>
         ) : (
-          <table style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            marginTop: '20px'
-          }}>
+          <table className="cars-table">
             <thead>
-              <tr style={{ backgroundColor: '#282c34', color: 'white' }}>
-                <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #ddd' }}>Name</th>
-                <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #ddd' }}>Make</th>
-                <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #ddd' }}>Model</th>
-                <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #ddd' }}>Year</th>
-                <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #ddd' }}>Mileage</th>
+              <tr>
+                <th>Name</th>
+                <th>Make</th>
+                <th>Model</th>
+                <th>Year</th>
+                <th>Mileage</th>
               </tr>
             </thead>
             <tbody>
               {cars.map(car => (
-                <tr key={car.id}>
-                  <td style={{ padding: '12px', border: '1px solid #ddd' }}>{car.name}</td>
-                  <td style={{ padding: '12px', border: '1px solid #ddd' }}>{car.make}</td>
-                  <td style={{ padding: '12px', border: '1px solid #ddd' }}>{car.model}</td>
-                  <td style={{ padding: '12px', border: '1px solid #ddd' }}>{car.year}</td>
-                  <td style={{ padding: '12px', border: '1px solid #ddd' }}>{car.mileage.toLocaleString()} mi</td>
+                <tr key={car.id} onClick={() => handleRowClick(car)}>
+                  <td>{car.name}</td>
+                  <td>{car.make}</td>
+                  <td>{car.model}</td>
+                  <td>{car.year}</td>
+                  <td>{car.mileage.toLocaleString()} mi</td>
                 </tr>
               ))}
             </tbody>

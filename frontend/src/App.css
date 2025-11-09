@@ -37,3 +37,71 @@ body {
   border-radius: 10px;
   backdrop-filter: blur(10px);
 }
+
+.cars-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.cars-table thead tr {
+  background-color: #282c34;
+  color: white;
+}
+
+.cars-table th {
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+.cars-table tbody tr {
+  cursor: pointer;
+}
+
+.cars-table tbody tr:hover {
+  background-color: #ffd700;
+  color: #000000;
+}
+
+.cars-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+}
+
+.back-button {
+  padding: 10px 20px;
+  margin-bottom: 20px;
+  background-color: #61dafb;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.back-button:hover {
+  background-color: #4fa8c5;
+}
+
+.car-details-card {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 10px;
+  max-width: 600px;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: #000000;
+}
+
+.car-details-card h2 {
+  margin-top: 0;
+  color: #282c34;
+  border-bottom: 2px solid #61dafb;
+  padding-bottom: 10px;
+}
+
+.car-details-info {
+  font-size: 18px;
+  line-height: 2;
+  color: #333333;
+}
