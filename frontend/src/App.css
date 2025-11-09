@@ -106,3 +106,52 @@ body {
   line-height: 2;
   color: #333333;
 }
+
+.maintenance-section {
+  margin-top: 30px;
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.maintenance-section h3 {
+  color: white;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.maintenance-section p {
+  color: white;
+  text-align: center;
+}
+
+.maintenance-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.maintenance-table thead tr {
+  background-color: #282c34;
+  color: white;
+}
+
+.maintenance-table th {
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+.maintenance-table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  color: #333333;
+}
+
+.maintenance-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}

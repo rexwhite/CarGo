@@ -6,6 +6,8 @@ function App() {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCar, setSelectedCar] = useState(null);
+  const [maintenanceItems, setMaintenanceItems] = useState([]);
+  const [loadingMaintenance, setLoadingMaintenance] = useState(false);
 
   useEffect(() => {
     fetch('/api/cars')
@@ -19,6 +21,22 @@ function App() {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (selectedCar) {
+      setLoadingMaintenance(true);
+      fetch(`/api/maintenance-items/car/${selectedCar.id}`)
+        .then(res => res.json())
+        .then(data => {
+          setMaintenanceItems(data);
+          setLoadingMaintenance(false);
+        })
+        .catch(err => {
+          console.error('Error fetching maintenance items:', err);
+          setLoadingMaintenance(false);
+        });
+    }
+  }, [selectedCar]);
 
   const handleRowClick = (car) => {
     setSelectedCar(car);
@@ -61,6 +79,36 @@ function App() {
                 <p><strong>Year:</strong> {selectedCar.year}</p>
                 <p><strong>Mileage:</strong> {selectedCar.mileage.toLocaleString()} mi</p>
               </div>
+            </div>
+
+            <div className="maintenance-section">
+              <h3>Maintenance Items</h3>
+              {loadingMaintenance ? (
+                <p>Loading maintenance items...</p>
+              ) : maintenanceItems.length === 0 ? (
+                <p>No maintenance items found for this car.</p>
+              ) : (
+                <table className="maintenance-table">
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Description</th>
+                      <th>Mileage Interval</th>
+                      <th>Month Interval</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {maintenanceItems.map(item => (
+                      <tr key={item.id}>
+                        <td>{item.title}</td>
+                        <td>{item.description || 'N/A'}</td>
+                        <td>{item.mileage_interval ? `${item.mileage_interval.toLocaleString()} mi` : 'N/A'}</td>
+                        <td>{item.month_interval ? `${item.month_interval} months` : 'N/A'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </main>
         </>
