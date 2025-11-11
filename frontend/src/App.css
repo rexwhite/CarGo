@@ -107,7 +107,7 @@ body {
   color: #333333;
 }
 
-.maintenance-section {
+.service-section {
   margin-top: 30px;
   width: 100%;
   max-width: 1200px;
@@ -115,18 +115,18 @@ body {
   margin-right: auto;
 }
 
-.maintenance-section h3 {
+.service-section h3 {
   color: white;
   margin-bottom: 20px;
   text-align: center;
 }
 
-.maintenance-section p {
+.service-section p {
   color: white;
   text-align: center;
 }
 
-.maintenance-table {
+.service-table {
   width: 100%;
   border-collapse: collapse;
   background-color: white;
@@ -135,23 +135,23 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.maintenance-table thead tr {
+.service-table thead tr {
   background-color: #282c34;
   color: white;
 }
 
-.maintenance-table th {
+.service-table th {
   padding: 12px;
   text-align: left;
   border: 1px solid #ddd;
 }
 
-.maintenance-table td {
+.service-table td {
   padding: 12px;
   border: 1px solid #ddd;
   color: #333333;
 }
 
-.maintenance-table tbody tr:nth-child(even) {
+.service-table tbody tr:nth-child(even) {
   background-color: #f9f9f9;
 }

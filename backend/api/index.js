@@ -7,7 +7,8 @@ module.exports = (pool) => {
   });
 
   router.use('/cars', require('./cars')(pool));
-  router.use('/maintenance-items', require('./maintenance_items')(pool));
+  router.use('/service-items', require('./service_items')(pool));
+  router.use('/service-events', require('./service_events')(pool));
 
   return router;
 };

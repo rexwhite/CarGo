@@ -6,7 +6,8 @@ async function db_create() {
 
         const sql = " \
             -- Drop existing tables if they exist\n\
-            DROP TABLE IF EXISTS maintenance_items CASCADE;\n\
+            DROP TABLE IF EXISTS service_events CASCADE;\n\
+            DROP TABLE IF EXISTS service_items CASCADE;\n\
             DROP TABLE IF EXISTS cars CASCADE;\n\
             \n\
             -- Create cars table\n\
@@ -20,14 +21,25 @@ async function db_create() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n\
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n\
             );\n\
-            -- Create maintenance_items table\n\
-            CREATE TABLE maintenance_items (\n\
+            -- Create service_items table\n\
+            CREATE TABLE service_items (\n\
                 id SERIAL PRIMARY KEY,\n\
                 car_id INTEGER NOT NULL REFERENCES cars(id) ON DELETE CASCADE,\n\
                 title VARCHAR(255) NOT NULL,\n\
                 description TEXT,\n\
                 mileage_interval INTEGER,\n\
                 month_interval INTEGER,\n\
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n\
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n\
+            );\n\
+            -- Create service_events table\n\
+            CREATE TABLE service_events (\n\
+                id SERIAL PRIMARY KEY,\n\
+                service_item_id INTEGER NOT NULL REFERENCES service_items(id) ON DELETE CASCADE,\n\
+                date DATE NOT NULL,\n\
+                mileage INTEGER NOT NULL,\n\
+                performed_by VARCHAR(255),\n\
+                notes TEXT,\n\
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n\
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n\
             );";

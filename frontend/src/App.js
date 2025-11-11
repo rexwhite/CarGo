@@ -1,3 +1,5 @@
+// noinspection CheckImageSize
+
 import React, { useState, useEffect } from 'react';
 import { Navbar, Container } from 'react-bootstrap';
 import './App.css';
@@ -6,8 +8,8 @@ function App() {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCar, setSelectedCar] = useState(null);
-  const [maintenanceItems, setMaintenanceItems] = useState([]);
-  const [loadingMaintenance, setLoadingMaintenance] = useState(false);
+  const [serviceItems, setServiceItems] = useState([]);
+  const [loadingService, setLoadingService] = useState(false);
 
   useEffect(() => {
     fetch('/api/cars')
@@ -24,16 +26,16 @@ function App() {
 
   useEffect(() => {
     if (selectedCar) {
-      setLoadingMaintenance(true);
-      fetch(`/api/maintenance-items/car/${selectedCar.id}`)
+      setLoadingService(true);
+      fetch(`/api/service-items/car/${selectedCar.id}`)
         .then(res => res.json())
         .then(data => {
-          setMaintenanceItems(data);
-          setLoadingMaintenance(false);
+          setServiceItems(data);
+          setLoadingService(false);
         })
         .catch(err => {
-          console.error('Error fetching maintenance items:', err);
-          setLoadingMaintenance(false);
+          console.error('Error fetching service items:', err);
+          setLoadingService(false);
         });
     }
   }, [selectedCar]);
@@ -81,14 +83,14 @@ function App() {
               </div>
             </div>
 
-            <div className="maintenance-section">
-              <h3>Maintenance Items</h3>
-              {loadingMaintenance ? (
-                <p>Loading maintenance items...</p>
-              ) : maintenanceItems.length === 0 ? (
-                <p>No maintenance items found for this car.</p>
+            <div className="service-section">
+              <h3>Service Items</h3>
+              {loadingService ? (
+                <p>Loading service items...</p>
+              ) : serviceItems.length === 0 ? (
+                <p>No service items found for this car.</p>
               ) : (
-                <table className="maintenance-table">
+                <table className="service-table">
                   <thead>
                     <tr>
                       <th>Title</th>
@@ -98,7 +100,7 @@ function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {maintenanceItems.map(item => (
+                    {serviceItems.map(item => (
                       <tr key={item.id}>
                         <td>{item.title}</td>
                         <td>{item.description || 'N/A'}</td>

@@ -1,6 +1,6 @@
 const request = require('supertest');
 const express = require('express');
-const maintenanceItemsRouter = require('./maintenance_items');
+const serviceItemsRouter = require('./service_items');
 
 // Mock pool
 const mockPool = {
@@ -11,11 +11,11 @@ const mockPool = {
 const createApp = () => {
   const app = express();
   app.use(express.json());
-  app.use('/api/maintenance-items', maintenanceItemsRouter(mockPool));
+  app.use('/api/service-items', serviceItemsRouter(mockPool));
   return app;
 };
 
-describe('GET /api/maintenance-items/car/:carId', () => {
+describe('GET /api/service-items/car/:carId', () => {
   let app;
 
   beforeEach(() => {
@@ -23,7 +23,7 @@ describe('GET /api/maintenance-items/car/:carId', () => {
     jest.clearAllMocks();
   });
 
-  test('should return all maintenance items for a car', async () => {
+  test('should return all service items for a car', async () => {
     const mockItems = [
       { id: 1, car_id: 1, title: 'Oil Change', description: 'Regular oil change', mileage_interval: 5000, month_interval: 6 },
       { id: 2, car_id: 1, title: 'Tire Rotation', description: 'Rotate tires', mileage_interval: 7500, month_interval: null },
@@ -31,12 +31,12 @@ describe('GET /api/maintenance-items/car/:carId', () => {
 
     mockPool.query.mockResolvedValue({ rows: mockItems });
 
-    const response = await request(app).get('/api/maintenance-items/car/1');
+    const response = await request(app).get('/api/service-items/car/1');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(mockItems);
     expect(mockPool.query).toHaveBeenCalledWith(
-      'SELECT * FROM maintenance_items WHERE car_id = $1 ORDER BY id',
+      'SELECT * FROM service_items WHERE car_id = $1 ORDER BY id',
       ['1']
     );
   });
@@ -44,14 +44,14 @@ describe('GET /api/maintenance-items/car/:carId', () => {
   test('should handle database errors', async () => {
     mockPool.query.mockRejectedValue(new Error('Database error'));
 
-    const response = await request(app).get('/api/maintenance-items/car/1');
+    const response = await request(app).get('/api/service-items/car/1');
 
     expect(response.status).toBe(500);
-    expect(response.body).toEqual({ error: 'Failed to fetch maintenance items' });
+    expect(response.body).toEqual({ error: 'Failed to fetch service items' });
   });
 });
 
-describe('GET /api/maintenance-items/:id', () => {
+describe('GET /api/service-items/:id', () => {
   let app;
 
   beforeEach(() => {
@@ -59,38 +59,38 @@ describe('GET /api/maintenance-items/:id', () => {
     jest.clearAllMocks();
   });
 
-  test('should return a single maintenance item by id', async () => {
+  test('should return a single service item by id', async () => {
     const mockItem = { id: 1, car_id: 1, title: 'Oil Change', description: 'Regular oil change', mileage_interval: 5000, month_interval: 6 };
 
     mockPool.query.mockResolvedValue({ rows: [mockItem] });
 
-    const response = await request(app).get('/api/maintenance-items/1');
+    const response = await request(app).get('/api/service-items/1');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(mockItem);
-    expect(mockPool.query).toHaveBeenCalledWith('SELECT * FROM maintenance_items WHERE id = $1', ['1']);
+    expect(mockPool.query).toHaveBeenCalledWith('SELECT * FROM service_items WHERE id = $1', ['1']);
   });
 
-  test('should return 404 if maintenance item not found', async () => {
+  test('should return 404 if service item not found', async () => {
     mockPool.query.mockResolvedValue({ rows: [] });
 
-    const response = await request(app).get('/api/maintenance-items/999');
+    const response = await request(app).get('/api/service-items/999');
 
     expect(response.status).toBe(404);
-    expect(response.body).toEqual({ error: 'Maintenance item not found' });
+    expect(response.body).toEqual({ error: 'Service item not found' });
   });
 
   test('should handle database errors', async () => {
     mockPool.query.mockRejectedValue(new Error('Database error'));
 
-    const response = await request(app).get('/api/maintenance-items/1');
+    const response = await request(app).get('/api/service-items/1');
 
     expect(response.status).toBe(500);
-    expect(response.body).toEqual({ error: 'Failed to fetch maintenance item' });
+    expect(response.body).toEqual({ error: 'Failed to fetch service item' });
   });
 });
 
-describe('POST /api/maintenance-items', () => {
+describe('POST /api/service-items', () => {
   let app;
 
   beforeEach(() => {
@@ -98,20 +98,20 @@ describe('POST /api/maintenance-items', () => {
     jest.clearAllMocks();
   });
 
-  test('should create a new maintenance item', async () => {
+  test('should create a new service item', async () => {
     const newItem = { car_id: 1, title: 'Brake Inspection', description: 'Check brake pads', mileage_interval: 10000, month_interval: 12 };
     const createdItem = { id: 3, ...newItem };
 
     mockPool.query.mockResolvedValue({ rows: [createdItem] });
 
     const response = await request(app)
-      .post('/api/maintenance-items')
+      .post('/api/service-items')
       .send(newItem);
 
     expect(response.status).toBe(201);
     expect(response.body).toEqual(createdItem);
     expect(mockPool.query).toHaveBeenCalledWith(
-      'INSERT INTO maintenance_items (car_id, title, description, mileage_interval, month_interval) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      'INSERT INTO service_items (car_id, title, description, mileage_interval, month_interval) VALUES ($1, $2, $3, $4, $5) RETURNING *',
       [newItem.car_id, newItem.title, newItem.description, newItem.mileage_interval, newItem.month_interval]
     );
   });
@@ -120,15 +120,15 @@ describe('POST /api/maintenance-items', () => {
     mockPool.query.mockRejectedValue(new Error('Database error'));
 
     const response = await request(app)
-      .post('/api/maintenance-items')
+      .post('/api/service-items')
       .send({ car_id: 1, title: 'Brake Inspection', description: 'Check brake pads', mileage_interval: 10000, month_interval: 12 });
 
     expect(response.status).toBe(500);
-    expect(response.body).toEqual({ error: 'Failed to create maintenance item' });
+    expect(response.body).toEqual({ error: 'Failed to create service item' });
   });
 });
 
-describe('PUT /api/maintenance-items/:id', () => {
+describe('PUT /api/service-items/:id', () => {
   let app;
 
   beforeEach(() => {
@@ -136,47 +136,47 @@ describe('PUT /api/maintenance-items/:id', () => {
     jest.clearAllMocks();
   });
 
-  test('should update an existing maintenance item', async () => {
+  test('should update an existing service item', async () => {
     const updatedItem = { id: 1, car_id: 1, title: 'Oil Change', description: 'Synthetic oil change', mileage_interval: 7500, month_interval: 6 };
 
     mockPool.query.mockResolvedValue({ rows: [updatedItem] });
 
     const response = await request(app)
-      .put('/api/maintenance-items/1')
+      .put('/api/service-items/1')
       .send({ title: 'Oil Change', description: 'Synthetic oil change', mileage_interval: 7500, month_interval: 6 });
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(updatedItem);
     expect(mockPool.query).toHaveBeenCalledWith(
-      'UPDATE maintenance_items SET title = $1, description = $2, mileage_interval = $3, month_interval = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *',
+      'UPDATE service_items SET title = $1, description = $2, mileage_interval = $3, month_interval = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *',
       ['Oil Change', 'Synthetic oil change', 7500, 6, '1']
     );
   });
 
-  test('should return 404 if maintenance item not found', async () => {
+  test('should return 404 if service item not found', async () => {
     mockPool.query.mockResolvedValue({ rows: [] });
 
     const response = await request(app)
-      .put('/api/maintenance-items/999')
+      .put('/api/service-items/999')
       .send({ title: 'Oil Change', description: 'Synthetic oil change', mileage_interval: 7500, month_interval: 6 });
 
     expect(response.status).toBe(404);
-    expect(response.body).toEqual({ error: 'Maintenance item not found' });
+    expect(response.body).toEqual({ error: 'Service item not found' });
   });
 
   test('should handle database errors', async () => {
     mockPool.query.mockRejectedValue(new Error('Database error'));
 
     const response = await request(app)
-      .put('/api/maintenance-items/1')
+      .put('/api/service-items/1')
       .send({ title: 'Oil Change', description: 'Synthetic oil change', mileage_interval: 7500, month_interval: 6 });
 
     expect(response.status).toBe(500);
-    expect(response.body).toEqual({ error: 'Failed to update maintenance item' });
+    expect(response.body).toEqual({ error: 'Failed to update service item' });
   });
 });
 
-describe('DELETE /api/maintenance-items/:id', () => {
+describe('DELETE /api/service-items/:id', () => {
   let app;
 
   beforeEach(() => {
@@ -184,33 +184,33 @@ describe('DELETE /api/maintenance-items/:id', () => {
     jest.clearAllMocks();
   });
 
-  test('should delete an existing maintenance item', async () => {
+  test('should delete an existing service item', async () => {
     const deletedItem = { id: 1, car_id: 1, title: 'Oil Change', description: 'Regular oil change', mileage_interval: 5000, month_interval: 6 };
 
     mockPool.query.mockResolvedValue({ rows: [deletedItem] });
 
-    const response = await request(app).delete('/api/maintenance-items/1');
+    const response = await request(app).delete('/api/service-items/1');
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ message: 'Maintenance item deleted successfully', maintenance_item: deletedItem });
-    expect(mockPool.query).toHaveBeenCalledWith('DELETE FROM maintenance_items WHERE id = $1 RETURNING *', ['1']);
+    expect(response.body).toEqual({ message: 'Service item deleted successfully', service_item: deletedItem });
+    expect(mockPool.query).toHaveBeenCalledWith('DELETE FROM service_items WHERE id = $1 RETURNING *', ['1']);
   });
 
-  test('should return 404 if maintenance item not found', async () => {
+  test('should return 404 if service item not found', async () => {
     mockPool.query.mockResolvedValue({ rows: [] });
 
-    const response = await request(app).delete('/api/maintenance-items/999');
+    const response = await request(app).delete('/api/service-items/999');
 
     expect(response.status).toBe(404);
-    expect(response.body).toEqual({ error: 'Maintenance item not found' });
+    expect(response.body).toEqual({ error: 'Service item not found' });
   });
 
   test('should handle database errors', async () => {
     mockPool.query.mockRejectedValue(new Error('Database error'));
 
-    const response = await request(app).delete('/api/maintenance-items/1');
+    const response = await request(app).delete('/api/service-items/1');
 
     expect(response.status).toBe(500);
-    expect(response.body).toEqual({ error: 'Failed to delete maintenance item' });
+    expect(response.body).toEqual({ error: 'Failed to delete service item' });
   });
 });
