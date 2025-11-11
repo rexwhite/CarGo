@@ -2,7 +2,7 @@ const pool = require('./pool');
 
 async function db_create() {
     try {
-        console.log('Running database initialization...');
+        console.log('Creating database tables...');
 
         const sql = " \
             -- Drop existing tables if they exist\n\
@@ -46,10 +46,9 @@ async function db_create() {
 
         await pool.query(sql);
 
-        console.log('Database initialization completed successfully!');
-        process.exit(0);
+        console.log('Database tables created successfully!');
     } catch (err) {
-        console.error('Error running initialization:', err);
+        console.error('Error creating tables:', err);
         process.exit(1);
     }
 }

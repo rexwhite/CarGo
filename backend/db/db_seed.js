@@ -57,7 +57,6 @@ async function db_seed() {
     await pool.query(sql);
 
     console.log('Database migrations completed successfully!');
-    process.exit(0);
   } catch (err) {
     console.error('Error running migrations:', err);
     process.exit(1);

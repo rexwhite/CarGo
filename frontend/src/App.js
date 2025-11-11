@@ -10,6 +10,8 @@ function App() {
   const [selectedCar, setSelectedCar] = useState(null);
   const [serviceItems, setServiceItems] = useState([]);
   const [loadingService, setLoadingService] = useState(false);
+  const [serviceEvents, setServiceEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
 
   useEffect(() => {
     fetch('/api/cars')
@@ -32,6 +34,25 @@ function App() {
         .then(data => {
           setServiceItems(data);
           setLoadingService(false);
+
+          // Fetch service events for all service items
+          setLoadingEvents(true);
+          const eventPromises = data.map(item =>
+            fetch(`/api/service-events/service-item/${item.id}`)
+              .then(res => res.json())
+              .then(events => events.map(event => ({ ...event, service_item_title: item.title })))
+          );
+
+          Promise.all(eventPromises)
+            .then(allEvents => {
+              const flatEvents = allEvents.flat().sort((a, b) => new Date(b.date) - new Date(a.date));
+              setServiceEvents(flatEvents);
+              setLoadingEvents(false);
+            })
+            .catch(err => {
+              console.error('Error fetching service events:', err);
+              setLoadingEvents(false);
+            });
         })
         .catch(err => {
           console.error('Error fetching service items:', err);
@@ -106,6 +127,38 @@ function App() {
                         <td>{item.description || 'N/A'}</td>
                         <td>{item.mileage_interval ? `${item.mileage_interval.toLocaleString()} mi` : 'N/A'}</td>
                         <td>{item.month_interval ? `${item.month_interval} months` : 'N/A'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+
+            <div className="service-section">
+              <h3>Service History</h3>
+              {loadingEvents ? (
+                <p>Loading service history...</p>
+              ) : serviceEvents.length === 0 ? (
+                <p>No service history found for this car.</p>
+              ) : (
+                <table className="service-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Service</th>
+                      <th>Mileage</th>
+                      <th>Performed By</th>
+                      <th>Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {serviceEvents.map(event => (
+                      <tr key={event.id}>
+                        <td>{new Date(event.date).toLocaleDateString()}</td>
+                        <td>{event.service_item_title}</td>
+                        <td>{event.mileage.toLocaleString()} mi</td>
+                        <td>{event.performed_by || 'N/A'}</td>
+                        <td>{event.notes || 'N/A'}</td>
                       </tr>
                     ))}
                   </tbody>
