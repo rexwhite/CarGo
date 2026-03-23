@@ -1,0 +1,65 @@
+extends layout
+
+block content
+  .App
+    header.App-header
+      h2 Car Details
+
+    main(style="padding: 20px;")
+      .car-details-card
+        h2= car.name
+        .car-details-info
+          p
+            strong Make:
+            = car.make
+          p
+            strong Model:
+            = car.model
+          p
+            strong Year:
+            = car.year
+          p
+            strong Mileage:
+            = car.mileage.toLocaleString() + ' mi'
+
+      .service-section
+        h3 Service Items
+        if serviceItems.length === 0
+          p No service items found for this car.
+        else
+          table.service-table
+            thead
+              tr
+                th Title
+                th Description
+                th Mileage Interval
+                th Month Interval
+            tbody
+              each item in serviceItems
+                tr
+                  td= item.title
+                  td= item.description || 'N/A'
+                  td= item.mileage_interval ? item.mileage_interval.toLocaleString() + ' mi' : 'N/A'
+                  td= item.month_interval ? item.month_interval + ' months' : 'N/A'
+
+      .service-section
+        h3 Service History
+        if serviceEvents.length === 0
+          p No service history found for this car.
+        else
+          table.service-table
+            thead
+              tr
+                th Date
+                th Service
+                th Mileage
+                th Performed By
+                th Notes
+            tbody
+              each event in serviceEvents
+                tr
+                  td= new Date(event.date).toLocaleDateString()
+                  td= event.service_item_title
+                  td= event.mileage.toLocaleString() + ' mi'
+                  td= event.performed_by || 'N/A'
+                  td= event.notes || 'N/A'

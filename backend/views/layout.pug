@@ -1,0 +1,18 @@
+doctype html
+html(lang="en")
+  head
+    meta(charset="utf-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    meta(name="description" content="CarGo - Automotive Maintenance Tracker")
+    title CarGo - Automotive Maintenance Tracker
+    link(rel="stylesheet" href="/css/bootstrap.min.css")
+    link(rel="stylesheet" href="/css/app.css")
+  body
+    nav.navbar.navbar-dark.bg-dark.navbar-expand-lg.mb-3.fixed-top
+      .container-fluid
+        a.navbar-brand(href="/")
+          img(src="/CarGo.png" height="40" alt="CarGo Logo")
+          |  CarGo
+
+    .content
+      block content

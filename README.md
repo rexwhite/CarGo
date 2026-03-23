@@ -4,7 +4,7 @@ Automotive Maintenance Tracker
 
 ## Overview
 
-CarGo is a comprehensive web application for tracking vehicle information, maintenance schedules, and service history. Built with React frontend and Node.js/Express backend, using PostgreSQL for data persistence. Features include:
+CarGo is a comprehensive web application for tracking vehicle information, maintenance schedules, and service history. Built with Node.js/Express backend using Pug templates for server-rendered HTML and PostgreSQL for data persistence. Features include:
 
 - Multi-vehicle management
 - Service item scheduling (mileage and time-based intervals)
@@ -13,7 +13,7 @@ CarGo is a comprehensive web application for tracking vehicle information, maint
 
 ## Tech Stack
 
-- **Frontend**: React 19, Bootstrap 5, React-Bootstrap
+- **Frontend**: Pug templates, Bootstrap 5
 - **Backend**: Node.js, Express
 - **Database**: PostgreSQL 16
 - **Container**: Podman/Podman Compose
@@ -41,12 +41,7 @@ This starts PostgreSQL on port 5432 with the following credentials:
 ### 2. Install Dependencies
 
 ```bash
-# Install backend dependencies
 cd backend
-npm install
-
-# Install frontend dependencies
-cd ../frontend
 npm install
 ```
 
@@ -63,14 +58,7 @@ This will:
 - Drop and recreate tables: `cars`, `service_items`, `service_events`
 - Seed sample data for 3 cars with service items and history
 
-### 4. Build Frontend
-
-```bash
-cd frontend
-npm run build
-```
-
-### 5. Start the Server
+### 4. Start the Server
 
 ```bash
 cd backend
@@ -212,16 +200,16 @@ CarGo/
 │   │   ├── db_create.js         # Database schema
 │   │   ├── db_seed.js           # Sample data
 │   │   └── init.js              # Database initialization
-│   ├── server.js                # Express server
-│   └── package.json
-├── frontend/
+│   ├── views/
+│   │   ├── layout.pug           # Base template
+│   │   ├── index.pug            # Car list page
+│   │   └── car.pug              # Car details page
 │   ├── public/
-│   │   ├── CarGo.png            # Application logo
-│   │   └── index.html
-│   ├── src/
-│   │   ├── App.js               # Main React component
-│   │   ├── App.css              # Application styles
-│   │   └── index.js
+│   │   ├── css/
+│   │   │   ├── bootstrap.min.css
+│   │   │   └── app.css          # Application styles
+│   │   └── CarGo.png            # Application logo
+│   ├── server.js                # Express server
 │   └── package.json
 ├── podman-compose.yml           # PostgreSQL container config
 └── README.md

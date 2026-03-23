@@ -1,0 +1,29 @@
+extends layout
+
+block content
+  .App
+    header.App-header
+      img(src="/CarGo.png" alt="CarGo Logo" style="height: 100px; margin-bottom: 10px;")
+      h1 CarGo
+      h2 Automotive Maintenance Tracker
+
+    main(style="padding: 20px;")
+      if cars.length === 0
+        p No cars found.
+      else
+        table.cars-table
+          thead
+            tr
+              th Name
+              th Make
+              th Model
+              th Year
+              th Mileage
+          tbody
+            each car in cars
+              tr(onclick=`window.location.href='/car/${car.id}'`)
+                td= car.name
+                td= car.make
+                td= car.model
+                td= car.year
+                td= car.mileage.toLocaleString() + ' mi'

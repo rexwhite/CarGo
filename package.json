@@ -6,6 +6,6 @@
   "author": "Rex White",
   "license": "Apache-2.0",
   "scripts": {
-    "start": "cd backend && npm run deploy"
+    "start": "cd backend && npm start"
   }
 }
