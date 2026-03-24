@@ -23,47 +23,53 @@ block content
             = car.mileage.toLocaleString() + ' mi'
 
       .service-section
-        h3 Service Items
-        if serviceItems.length === 0
-          p No service items found for this car.
-        else
-          table.service-table
-            thead
-              tr
-                th Title
-                th Description
-                th Mileage Interval
-                th Month Interval
-                th Specific Mileage
-                th Specific Date
-            tbody
-              each item in serviceItems
-                tr
-                  td= item.title
-                  td= item.description || 'N/A'
-                  td= item.mileage_interval ? item.mileage_interval.toLocaleString() + ' mi' : 'N/A'
-                  td= item.month_interval ? item.month_interval + ' months' : 'N/A'
-                  td= item.specific_mileage ? item.specific_mileage.toLocaleString() + ' mi' : 'N/A'
-                  td= item.specific_date ? new Date(item.specific_date).toLocaleDateString() : 'N/A'
+        ul#serviceTabs.nav.nav-tabs.mb-3(role="tablist")
+          li.nav-item(role="presentation")
+            button#history-tab.nav-link.active(data-bs-toggle="tab", data-bs-target="#history", type="button", role="tab", aria-controls="history", aria-selected="true") Service History
+          li.nav-item(role="presentation")
+            button#scheduled-tab.nav-link(data-bs-toggle="tab", data-bs-target="#scheduled", type="button", role="tab", aria-controls="scheduled", aria-selected="false") Scheduled Service
 
-      .service-section
-        h3 Service History
-        if serviceEvents.length === 0
-          p No service history found for this car.
-        else
-          table.service-table
-            thead
-              tr
-                th Date
-                th Service
-                th Mileage
-                th Performed By
-                th Notes
-            tbody
-              each event in serviceEvents
-                tr
-                  td= new Date(event.date).toLocaleDateString()
-                  td= event.service_item_title
-                  td= event.mileage.toLocaleString() + ' mi'
-                  td= event.performed_by || 'N/A'
-                  td= event.notes || 'N/A'
+        .tab-content#serviceTabsContent
+          .tab-pane.fade.show.active#history(role="tabpanel", aria-labelledby="history-tab")
+            if serviceEvents.length === 0
+              p No service history found for this car.
+            else
+              table.service-table
+                thead
+                  tr
+                    th Date
+                    th Service
+                    th Mileage
+                    th Performed By
+                    th Notes
+                tbody
+                  each event in serviceEvents
+                    tr
+                      td= new Date(event.date).toLocaleDateString()
+                      td= event.service_item_title
+                      td= event.mileage.toLocaleString() + ' mi'
+                      td= event.performed_by || 'N/A'
+                      td= event.notes || 'N/A'
+
+          .tab-pane.fade#scheduled(role="tabpanel", aria-labelledby="scheduled-tab")
+            if serviceItems.length === 0
+              p No service items found for this car.
+            else
+              table.service-table
+                thead
+                  tr
+                    th Title
+                    th Description
+                    th Mileage Interval
+                    th Month Interval
+                    th Specific Mileage
+                    th Specific Date
+                tbody
+                  each item in serviceItems
+                    tr
+                      td= item.title
+                      td= item.description || 'N/A'
+                      td= item.mileage_interval ? item.mileage_interval.toLocaleString() + ' mi' : 'N/A'
+                      td= item.month_interval ? item.month_interval + ' months' : 'N/A'
+                      td= item.specific_mileage ? item.specific_mileage.toLocaleString() + ' mi' : 'N/A'
+                      td= item.specific_date ? new Date(item.specific_date).toLocaleDateString() : 'N/A'
