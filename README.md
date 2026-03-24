@@ -210,7 +210,7 @@ CarGo/
 │   │   ├── css/
 │   │   │   ├── bootstrap.min.css
 │   │   │   └── app.css          # Application styles
-│   │   └── CarGo.png            # Application logo
+│   │   └── CarGo.svg            # Application logo
 │   ├── server.js                # Express server
 │   └── package.json
 ├── podman-compose.yml           # PostgreSQL container config
