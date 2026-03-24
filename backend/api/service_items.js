@@ -35,10 +35,10 @@ module.exports = (pool) => {
   // Create a new service item
   router.post('/', async (req, res) => {
     try {
-      const { car_id, title, description, mileage_interval, month_interval } = req.body;
+      const { car_id, title, description, mileage_interval, month_interval, specific_mileage, specific_date } = req.body;
       const result = await pool.query(
-        'INSERT INTO service_items (car_id, title, description, mileage_interval, month_interval) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [car_id, title, description, mileage_interval, month_interval]
+        'INSERT INTO service_items (car_id, title, description, mileage_interval, month_interval, specific_mileage, specific_date) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        [car_id, title, description, mileage_interval, month_interval, specific_mileage, specific_date]
       );
       res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -51,10 +51,10 @@ module.exports = (pool) => {
   router.put('/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      const { title, description, mileage_interval, month_interval } = req.body;
+      const { title, description, mileage_interval, month_interval, specific_mileage, specific_date } = req.body;
       const result = await pool.query(
-        'UPDATE service_items SET title = $1, description = $2, mileage_interval = $3, month_interval = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *',
-        [title, description, mileage_interval, month_interval, id]
+        'UPDATE service_items SET title = $1, description = $2, mileage_interval = $3, month_interval = $4, specific_mileage = $5, specific_date = $6, updated_at = CURRENT_TIMESTAMP WHERE id = $7 RETURNING *',
+        [title, description, mileage_interval, month_interval, specific_mileage, specific_date, id]
       );
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Service item not found' });

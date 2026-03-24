@@ -67,6 +67,8 @@ npm start
 
 The application will be available at `http://localhost:8000`
 
+**Note:** The database must be running (step 1) before starting the server. If you see database connection errors, ensure PostgreSQL is running with `podman ps` or restart it with `podman-compose up -d`.
+
 ### Development Mode
 
 For backend development with auto-reload:

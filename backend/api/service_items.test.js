@@ -25,8 +25,8 @@ describe('GET /api/service-items/car/:carId', () => {
 
   test('should return all service items for a car', async () => {
     const mockItems = [
-      { id: 1, car_id: 1, title: 'Oil Change', description: 'Regular oil change', mileage_interval: 5000, month_interval: 6 },
-      { id: 2, car_id: 1, title: 'Tire Rotation', description: 'Rotate tires', mileage_interval: 7500, month_interval: null },
+      { id: 1, car_id: 1, title: 'Oil Change', description: 'Regular oil change', mileage_interval: 5000, month_interval: 6, specific_mileage: null, specific_date: null },
+      { id: 2, car_id: 1, title: 'Tire Rotation', description: 'Rotate tires', mileage_interval: 7500, month_interval: null, specific_mileage: null, specific_date: null },
     ];
 
     mockPool.query.mockResolvedValue({ rows: mockItems });
@@ -60,7 +60,7 @@ describe('GET /api/service-items/:id', () => {
   });
 
   test('should return a single service item by id', async () => {
-    const mockItem = { id: 1, car_id: 1, title: 'Oil Change', description: 'Regular oil change', mileage_interval: 5000, month_interval: 6 };
+    const mockItem = { id: 1, car_id: 1, title: 'Oil Change', description: 'Regular oil change', mileage_interval: 5000, month_interval: 6, specific_mileage: null, specific_date: null };
 
     mockPool.query.mockResolvedValue({ rows: [mockItem] });
 
@@ -99,7 +99,7 @@ describe('POST /api/service-items', () => {
   });
 
   test('should create a new service item', async () => {
-    const newItem = { car_id: 1, title: 'Brake Inspection', description: 'Check brake pads', mileage_interval: 10000, month_interval: 12 };
+    const newItem = { car_id: 1, title: 'Brake Inspection', description: 'Check brake pads', mileage_interval: 10000, month_interval: 12, specific_mileage: null, specific_date: null };
     const createdItem = { id: 3, ...newItem };
 
     mockPool.query.mockResolvedValue({ rows: [createdItem] });
@@ -111,8 +111,44 @@ describe('POST /api/service-items', () => {
     expect(response.status).toBe(201);
     expect(response.body).toEqual(createdItem);
     expect(mockPool.query).toHaveBeenCalledWith(
-      'INSERT INTO service_items (car_id, title, description, mileage_interval, month_interval) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [newItem.car_id, newItem.title, newItem.description, newItem.mileage_interval, newItem.month_interval]
+      'INSERT INTO service_items (car_id, title, description, mileage_interval, month_interval, specific_mileage, specific_date) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [newItem.car_id, newItem.title, newItem.description, newItem.mileage_interval, newItem.month_interval, newItem.specific_mileage, newItem.specific_date]
+    );
+  });
+
+  test('should create a service item with specific_date', async () => {
+    const newItem = { car_id: 1, title: 'State Inspection', description: 'Annual inspection', mileage_interval: null, month_interval: null, specific_mileage: null, specific_date: '2025-12-31' };
+    const createdItem = { id: 4, ...newItem };
+
+    mockPool.query.mockResolvedValue({ rows: [createdItem] });
+
+    const response = await request(app)
+      .post('/api/service-items')
+      .send(newItem);
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual(createdItem);
+    expect(mockPool.query).toHaveBeenCalledWith(
+      'INSERT INTO service_items (car_id, title, description, mileage_interval, month_interval, specific_mileage, specific_date) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [newItem.car_id, newItem.title, newItem.description, newItem.mileage_interval, newItem.month_interval, newItem.specific_mileage, newItem.specific_date]
+    );
+  });
+
+  test('should create a service item with specific_mileage', async () => {
+    const newItem = { car_id: 1, title: 'Timing Belt', description: 'Replace timing belt', mileage_interval: null, month_interval: null, specific_mileage: 100000, specific_date: null };
+    const createdItem = { id: 5, ...newItem };
+
+    mockPool.query.mockResolvedValue({ rows: [createdItem] });
+
+    const response = await request(app)
+      .post('/api/service-items')
+      .send(newItem);
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual(createdItem);
+    expect(mockPool.query).toHaveBeenCalledWith(
+      'INSERT INTO service_items (car_id, title, description, mileage_interval, month_interval, specific_mileage, specific_date) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [newItem.car_id, newItem.title, newItem.description, newItem.mileage_interval, newItem.month_interval, newItem.specific_mileage, newItem.specific_date]
     );
   });
 
@@ -137,19 +173,36 @@ describe('PUT /api/service-items/:id', () => {
   });
 
   test('should update an existing service item', async () => {
-    const updatedItem = { id: 1, car_id: 1, title: 'Oil Change', description: 'Synthetic oil change', mileage_interval: 7500, month_interval: 6 };
+    const updatedItem = { id: 1, car_id: 1, title: 'Oil Change', description: 'Synthetic oil change', mileage_interval: 7500, month_interval: 6, specific_mileage: null, specific_date: null };
 
     mockPool.query.mockResolvedValue({ rows: [updatedItem] });
 
     const response = await request(app)
       .put('/api/service-items/1')
-      .send({ title: 'Oil Change', description: 'Synthetic oil change', mileage_interval: 7500, month_interval: 6 });
+      .send({ title: 'Oil Change', description: 'Synthetic oil change', mileage_interval: 7500, month_interval: 6, specific_mileage: null, specific_date: null });
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(updatedItem);
     expect(mockPool.query).toHaveBeenCalledWith(
-      'UPDATE service_items SET title = $1, description = $2, mileage_interval = $3, month_interval = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *',
-      ['Oil Change', 'Synthetic oil change', 7500, 6, '1']
+      'UPDATE service_items SET title = $1, description = $2, mileage_interval = $3, month_interval = $4, specific_mileage = $5, specific_date = $6, updated_at = CURRENT_TIMESTAMP WHERE id = $7 RETURNING *',
+      ['Oil Change', 'Synthetic oil change', 7500, 6, null, null, '1']
+    );
+  });
+
+  test('should update a service item with specific fields', async () => {
+    const updatedItem = { id: 2, car_id: 1, title: 'State Inspection', description: 'Annual inspection', mileage_interval: null, month_interval: null, specific_mileage: null, specific_date: '2026-01-15' };
+
+    mockPool.query.mockResolvedValue({ rows: [updatedItem] });
+
+    const response = await request(app)
+      .put('/api/service-items/2')
+      .send({ title: 'State Inspection', description: 'Annual inspection', mileage_interval: null, month_interval: null, specific_mileage: null, specific_date: '2026-01-15' });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(updatedItem);
+    expect(mockPool.query).toHaveBeenCalledWith(
+      'UPDATE service_items SET title = $1, description = $2, mileage_interval = $3, month_interval = $4, specific_mileage = $5, specific_date = $6, updated_at = CURRENT_TIMESTAMP WHERE id = $7 RETURNING *',
+      ['State Inspection', 'Annual inspection', null, null, null, '2026-01-15', '2']
     );
   });
 
@@ -185,7 +238,7 @@ describe('DELETE /api/service-items/:id', () => {
   });
 
   test('should delete an existing service item', async () => {
-    const deletedItem = { id: 1, car_id: 1, title: 'Oil Change', description: 'Regular oil change', mileage_interval: 5000, month_interval: 6 };
+    const deletedItem = { id: 1, car_id: 1, title: 'Oil Change', description: 'Regular oil change', mileage_interval: 5000, month_interval: 6, specific_mileage: null, specific_date: null };
 
     mockPool.query.mockResolvedValue({ rows: [deletedItem] });
 

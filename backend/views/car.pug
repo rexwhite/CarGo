@@ -34,6 +34,8 @@ block content
                 th Description
                 th Mileage Interval
                 th Month Interval
+                th Specific Mileage
+                th Specific Date
             tbody
               each item in serviceItems
                 tr
@@ -41,6 +43,8 @@ block content
                   td= item.description || 'N/A'
                   td= item.mileage_interval ? item.mileage_interval.toLocaleString() + ' mi' : 'N/A'
                   td= item.month_interval ? item.month_interval + ' months' : 'N/A'
+                  td= item.specific_mileage ? item.specific_mileage.toLocaleString() + ' mi' : 'N/A'
+                  td= item.specific_date ? new Date(item.specific_date).toLocaleDateString() : 'N/A'
 
       .service-section
         h3 Service History

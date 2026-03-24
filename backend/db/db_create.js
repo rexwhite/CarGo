@@ -29,6 +29,8 @@ async function db_create() {
                 description TEXT,\n\
                 mileage_interval INTEGER,\n\
                 month_interval INTEGER,\n\
+                specific_mileage INTEGER,\n\
+                specific_date DATE,\n\
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n\
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n\
             );\n\
