@@ -8,10 +8,14 @@
     "dev": "nodemon server.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "db:init": "node db/init.js"
+    "db:init": "node db/init.js",
+    "db:migrate": "node db/migrate.js",
+    "db:migrate:down": "node db/migrate-down.js",
+    "db:migrate:create": "node db/migration-create.js"
   },
   "dependencies": {
     "express": "^4.18.2",
+    "node-pg-migrate": "^8.0.4",
     "pg": "^8.16.3",
     "pug": "^3.0.4"
   },

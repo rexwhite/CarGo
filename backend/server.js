@@ -1,9 +1,10 @@
 const express = require('express');
 const path = require('path');
 const pool = require('./db/pool');
+const { runMigrations } = require('./db/migrate');
+const { port: PORT } = require('./config');
 
 const app = express();
-const PORT = process.env.PORT || 8000;
 
 // Set up Pug as the view engine
 app.set('view engine', 'pug');
@@ -72,6 +73,11 @@ app.get('/car/:id', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`CarGo server running on port ${PORT}`);
+runMigrations().then(() => {
+  app.listen(PORT, () => {
+    console.log(`CarGo server running on port ${PORT}`);
+  });
+}).catch((err) => {
+  console.error('Failed to run migrations:', err);
+  process.exit(1);
 });
