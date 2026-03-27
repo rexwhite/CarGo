@@ -102,9 +102,36 @@ body {
 }
 
 .car-details-info {
+  display: grid;
+  grid-template-columns: max-content auto max-content auto;
+  column-gap: 0.5rem;
+  row-gap: 0.25rem;
   font-size: 18px;
-  line-height: 2;
   color: #333333;
+  margin: 0;
+}
+
+.car-details-info div {
+  display: contents;
+}
+
+.car-details-info dd:nth-of-type(odd) {
+  padding-right: 2rem;
+}
+
+.car-details-info dt {
+  font-weight: bold;
+  text-align: right;
+}
+
+.car-details-info dt::after {
+  content: ':';
+}
+
+.car-details-info dd {
+  margin: 0;
+  padding-left: 0.5rem;
+  text-align: left;
 }
 
 .service-section {

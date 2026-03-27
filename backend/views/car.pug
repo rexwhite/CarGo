@@ -8,19 +8,19 @@ block content
     main(style="padding: 20px;")
       .car-details-card
         h2= car.name
-        .car-details-info
-          p
-            strong Make:
-            = car.make
-          p
-            strong Model:
-            = car.model
-          p
-            strong Year:
-            = car.year
-          p
-            strong Mileage:
-            = car.mileage.toLocaleString() + ' mi'
+        dl.car-details-info
+          div
+            dt Make
+            dd= car.make
+          div
+            dt Year
+            dd= car.year
+          div
+            dt Model
+            dd= car.model
+          div
+            dt Mileage
+            dd= car.mileage.toLocaleString() + ' mi'
 
       .service-section
         ul#serviceTabs.nav.nav-tabs.mb-3(role="tablist")
