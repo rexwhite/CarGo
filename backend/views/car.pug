@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  .App
+  .App.App--top
     header.App-header
       h2 Car Details
 
@@ -25,12 +25,12 @@ block content
       .service-section
         ul#serviceTabs.nav.nav-tabs.mb-3(role="tablist")
           li.nav-item(role="presentation")
-            button#history-tab.nav-link.active(data-bs-toggle="tab", data-bs-target="#history", type="button", role="tab", aria-controls="history", aria-selected="true") Service History
+            button#scheduled-tab.nav-link.active(data-bs-toggle="tab", data-bs-target="#scheduled", type="button", role="tab", aria-controls="scheduled", aria-selected="true") Scheduled Service
           li.nav-item(role="presentation")
-            button#scheduled-tab.nav-link(data-bs-toggle="tab", data-bs-target="#scheduled", type="button", role="tab", aria-controls="scheduled", aria-selected="false") Scheduled Service
+            button#history-tab.nav-link(data-bs-toggle="tab", data-bs-target="#history", type="button", role="tab", aria-controls="history", aria-selected="false") Service History
 
         .tab-content#serviceTabsContent
-          .tab-pane.fade.show.active#history(role="tabpanel", aria-labelledby="history-tab")
+          .tab-pane.fade#history(role="tabpanel", aria-labelledby="history-tab")
             if serviceEvents.length === 0
               p No service history found for this car.
             else
@@ -51,7 +51,7 @@ block content
                       td= event.performed_by || 'N/A'
                       td= event.notes || 'N/A'
 
-          .tab-pane.fade#scheduled(role="tabpanel", aria-labelledby="scheduled-tab")
+          .tab-pane.fade.show.active#scheduled(role="tabpanel", aria-labelledby="scheduled-tab")
             if serviceItems.length === 0
               p No service items found for this car.
             else
