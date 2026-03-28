@@ -153,6 +153,17 @@ body {
   justify-content: flex-start;
 }
 
+.scheduled-tab-icon,
+.history-tab-icon {
+  display: none;
+  margin-left: 0.4rem;
+}
+
+#scheduled-tab.active .scheduled-tab-icon,
+#history-tab.active .history-tab-icon {
+  display: inline;
+}
+
 .service-section h3 {
   color: white;
   margin-bottom: 20px;
