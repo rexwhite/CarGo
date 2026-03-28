@@ -34,6 +34,7 @@ async function runMigrations() {
   const databaseUrl = { ...connectionConfig, database: dbName };
 
   // Run schema migrations
+  console.log('Applying schema migrations...');
   await migrate({
     databaseUrl,
     migrationsTable: 'pgmigrations',
@@ -44,6 +45,7 @@ async function runMigrations() {
 
   // Run seed migrations in development and test only
   if (env === 'development' || env === 'test') {
+    console.log('Applying seed migrations...');
     await migrate({
       databaseUrl,
       migrationsTable: 'pgmigrations_seeds',
