@@ -31,10 +31,10 @@ module.exports = (pool) => {
   // Create a new car
   router.post('/', async (req, res) => {
     try {
-      const { make, model, year, color, price } = req.body;
+      const { name, make, model, year, mileage } = req.body;
       const result = await pool.query(
-        'INSERT INTO cars (make, model, year, color, price) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [make, model, year, color, price]
+        'INSERT INTO cars (name, make, model, year, mileage) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [name, make, model, year, mileage]
       );
       res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -47,10 +47,10 @@ module.exports = (pool) => {
   router.put('/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      const { make, model, year, color, price } = req.body;
+      const { name, make, model, year, mileage } = req.body;
       const result = await pool.query(
-        'UPDATE cars SET make = $1, model = $2, year = $3, color = $4, price = $5 WHERE id = $6 RETURNING *',
-        [make, model, year, color, price, id]
+        'UPDATE cars SET name = $1, make = $2, model = $3, year = $4, mileage = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6 RETURNING *',
+        [name, make, model, year, mileage, id]
       );
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Car not found' });

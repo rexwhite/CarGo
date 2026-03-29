@@ -21,7 +21,7 @@ body {
 }
 
 .App-header {
-  padding: 2rem;
+  padding: 0.5rem 2rem;
 }
 
 .App-header h1 {
@@ -33,7 +33,7 @@ body {
 .App-header h2 {
   font-size: 2rem;
   font-weight: 300;
-  margin: 1rem 0 2rem 0;
+  margin: 1rem 0 1rem 0;
 }
 
 .App-header p {
@@ -191,7 +191,7 @@ body {
 
 .service-table th {
   padding: 12px;
-  text-align: left;
+  text-align: center;
   border: 1px solid #ddd;
 }
 
@@ -199,6 +199,17 @@ body {
   padding: 12px;
   border: 1px solid #ddd;
   color: #333333;
+  text-align: left;
+}
+
+.service-item-row,
+.service-event-row {
+  cursor: pointer;
+}
+
+.service-item-row:hover,
+.service-event-row:hover {
+  background-color: #e8f4fd !important;
 }
 
 .service-table tbody tr:nth-child(even) {
