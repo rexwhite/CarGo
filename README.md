@@ -43,7 +43,6 @@ This starts PostgreSQL on port 5432 with the following credentials:
 ### 2. Install Dependencies
 
 ```bash
-cd backend
 npm install
 ```
 
@@ -52,7 +51,6 @@ npm install
 Run the database initialization and seeding:
 
 ```bash
-cd backend
 node db/init.js
 ```
 
@@ -63,7 +61,6 @@ This will:
 ### 4. Start the Server
 
 ```bash
-cd backend
 npm start
 ```
 
@@ -74,7 +71,6 @@ The application will be available at `http://localhost:8000`. The server uses **
 ### Running Tests
 
 ```bash
-cd backend
 npm test
 ```
 
@@ -181,38 +177,37 @@ npm run test:watch
 
 ```
 CarGo/
-├── backend/
-│   ├── api/
-│   │   ├── cars.js              # Cars CRUD endpoints
-│   │   ├── cars.test.js
-│   │   ├── service_items.js     # Service items CRUD endpoints
-│   │   ├── service_items.test.js
-│   │   ├── service_events.js    # Service events CRUD endpoints
-│   │   ├── service_events.test.js
-│   │   ├── projectedDate.js     # Projected service date calculation
-│   │   ├── projectedDate.test.js
-│   │   └── index.js             # API router
-│   ├── routes/
-│   │   ├── index.js             # Car list page route
-│   │   └── car.js               # Car details page route
-│   ├── db/
-│   │   ├── pool.js              # PostgreSQL connection pool
-│   │   ├── migrate.js           # Migration runner
-│   │   ├── migrate-down.js      # Roll back one migration
-│   │   ├── migration-create.js  # Generate migration file
-│   │   └── migrations/          # Migration files
-│   ├── views/
-│   │   ├── layout.pug           # Base template
-│   │   ├── index.pug            # Car list page
-│   │   └── car.pug              # Car details page
-│   ├── public/
-│   │   ├── css/
-│   │   │   ├── bootstrap.min.css
-│   │   │   └── app.css          # Application styles
-│   │   └── CarGo.svg            # Application logo
-│   ├── server.js                # Express server
-│   └── package.json
-├── podman-compose.yml           # PostgreSQL container config
+├── api/
+│   ├── cars.js              # Cars CRUD endpoints
+│   ├── cars.test.js
+│   ├── service_items.js     # Service items CRUD endpoints
+│   ├── service_items.test.js
+│   ├── service_events.js    # Service events CRUD endpoints
+│   ├── service_events.test.js
+│   ├── projectedDate.js     # Projected service date calculation
+│   ├── projectedDate.test.js
+│   └── index.js             # API router
+├── routes/
+│   ├── index.js             # Car list page route
+│   └── car.js               # Car details page route
+├── db/
+│   ├── pool.js              # PostgreSQL connection pool
+│   ├── migrate.js           # Migration runner
+│   ├── migrate-down.js      # Roll back one migration
+│   ├── migration-create.js  # Generate migration file
+│   └── migrations/          # Migration files
+├── views/
+│   ├── layout.pug           # Base template
+│   ├── index.pug            # Car list page
+│   └── car.pug              # Car details page
+├── public/
+│   ├── css/
+│   │   ├── bootstrap.min.css
+│   │   └── app.css          # Application styles
+│   └── CarGo.svg            # Application logo
+├── server.js                # Express server
+├── package.json
+├── podman-compose.yml       # PostgreSQL container config
 └── README.md
 ```
 

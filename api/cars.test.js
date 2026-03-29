@@ -96,7 +96,7 @@ describe('POST /api/cars', () => {
   });
 
   test('should create a new car', async () => {
-    const newCar = { make: 'Ford', model: 'Mustang', year: 2022, color: 'Black', price: 35000 };
+    const newCar = { name: 'Stang', make: 'Ford', model: 'Mustang', year: 2022, mileage: 5000 };
     const createdCar = { id: 3, ...newCar };
 
     mockPool.query.mockResolvedValue({ rows: [createdCar] });
@@ -108,8 +108,8 @@ describe('POST /api/cars', () => {
     expect(response.status).toBe(201);
     expect(response.body).toEqual(createdCar);
     expect(mockPool.query).toHaveBeenCalledWith(
-      'INSERT INTO cars (make, model, year, color, price) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [newCar.make, newCar.model, newCar.year, newCar.color, newCar.price]
+      'INSERT INTO cars (name, make, model, year, mileage) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [newCar.name, newCar.make, newCar.model, newCar.year, newCar.mileage]
     );
   });
 
@@ -118,7 +118,7 @@ describe('POST /api/cars', () => {
 
     const response = await request(app)
       .post('/api/cars')
-      .send({ make: 'Ford', model: 'Mustang', year: 2022, color: 'Black', price: 35000 });
+      .send({ name: 'Stang', make: 'Ford', model: 'Mustang', year: 2022, mileage: 5000 });
 
     expect(response.status).toBe(500);
     expect(response.body).toEqual({ error: 'Failed to create car' });
@@ -134,19 +134,19 @@ describe('PUT /api/cars/:id', () => {
   });
 
   test('should update an existing car', async () => {
-    const updatedCar = { id: 1, make: 'Toyota', model: 'Camry', year: 2021, color: 'Silver', price: 26000 };
+    const updatedCar = { id: 1, name: 'Daily Driver', make: 'Toyota', model: 'Camry', year: 2021, mileage: 26000 };
 
     mockPool.query.mockResolvedValue({ rows: [updatedCar] });
 
     const response = await request(app)
       .put('/api/cars/1')
-      .send({ make: 'Toyota', model: 'Camry', year: 2021, color: 'Silver', price: 26000 });
+      .send({ name: 'Daily Driver', make: 'Toyota', model: 'Camry', year: 2021, mileage: 26000 });
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(updatedCar);
     expect(mockPool.query).toHaveBeenCalledWith(
-      'UPDATE cars SET make = $1, model = $2, year = $3, color = $4, price = $5 WHERE id = $6 RETURNING *',
-      ['Toyota', 'Camry', 2021, 'Silver', 26000, '1']
+      'UPDATE cars SET name = $1, make = $2, model = $3, year = $4, mileage = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6 RETURNING *',
+      ['Daily Driver', 'Toyota', 'Camry', 2021, 26000, '1']
     );
   });
 
@@ -155,7 +155,7 @@ describe('PUT /api/cars/:id', () => {
 
     const response = await request(app)
       .put('/api/cars/999')
-      .send({ make: 'Toyota', model: 'Camry', year: 2021, color: 'Silver', price: 26000 });
+      .send({ name: 'Daily Driver', make: 'Toyota', model: 'Camry', year: 2021, mileage: 26000 });
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({ error: 'Car not found' });
@@ -166,7 +166,7 @@ describe('PUT /api/cars/:id', () => {
 
     const response = await request(app)
       .put('/api/cars/1')
-      .send({ make: 'Toyota', model: 'Camry', year: 2021, color: 'Silver', price: 26000 });
+      .send({ name: 'Daily Driver', make: 'Toyota', model: 'Camry', year: 2021, mileage: 26000 });
 
     expect(response.status).toBe(500);
     expect(response.body).toEqual({ error: 'Failed to update car' });
