@@ -34,13 +34,13 @@ block content
               table.service-table
                 thead
                   tr
+                    th Projected Date
                     th Title
                     th Description
                     th Mileage Interval
                     th Month Interval
                     th Specific Mileage
                     th Specific Date
-                    th Projected Date
                 tbody
                   each item in serviceItems
                     tr.service-item-row(class=`urgency-${item.urgency}`
@@ -52,13 +52,13 @@ block content
                       data-specific-mileage=item.specific_mileage || ''
                       data-specific-date=item.specific_date ? new Date(item.specific_date).toISOString().split('T')[0] : ''
                     )
+                      td= item.projected_date ? new Date(item.projected_date).toLocaleDateString() : 'N/A'
                       td= item.title
                       td= item.description || 'N/A'
                       td= item.mileage_interval ? item.mileage_interval.toLocaleString() + ' mi' : 'N/A'
                       td= item.month_interval ? item.month_interval + ' months' : 'N/A'
                       td= item.specific_mileage ? item.specific_mileage.toLocaleString() + ' mi' : 'N/A'
                       td= item.specific_date ? new Date(item.specific_date).toLocaleDateString() : 'N/A'
-                      td= item.projected_date ? new Date(item.projected_date).toLocaleDateString() : 'N/A'
 
           .tab-pane.fade#history(role="tabpanel", aria-labelledby="history-tab")
             if serviceEvents.length === 0

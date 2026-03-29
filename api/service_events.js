@@ -40,6 +40,15 @@ module.exports = (pool) => {
         'INSERT INTO service_events (service_item_id, date, mileage, performed_by, notes) VALUES ($1, $2, $3, $4, $5) RETURNING *',
         [service_item_id, date, mileage, performed_by, notes]
       );
+
+      // Update car mileage if this event's mileage exceeds the current value
+      await pool.query(
+        `UPDATE cars SET mileage = $1, updated_at = CURRENT_TIMESTAMP
+         WHERE id = (SELECT car_id FROM service_items WHERE id = $2)
+         AND mileage < $1`,
+        [mileage, service_item_id]
+      );
+
       res.status(201).json(result.rows[0]);
     } catch (err) {
       console.error('Error creating service event:', err);
