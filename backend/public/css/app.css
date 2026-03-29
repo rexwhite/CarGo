@@ -57,7 +57,7 @@ body {
 
 .cars-table th {
   padding: 12px;
-  text-align: left;
+  text-align: center;
   border: 1px solid #ddd;
 }
 
@@ -72,6 +72,7 @@ body {
 
 .cars-table td {
   padding: 12px;
+  text-align: left;
   border: 1px solid #ddd;
 }
 
