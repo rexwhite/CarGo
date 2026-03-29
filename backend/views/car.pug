@@ -114,6 +114,7 @@ block content
                 label.form-label(for="carMileage") Mileage
                 input#carMileage.form-control(type="number", name="mileage", min="0", required)
         .modal-footer
+          button#deleteCarBtn.btn.btn-danger.me-auto(type="button") Delete
           button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancel
           button#carSaveBtn.btn.btn-primary(type="button") Save
 
@@ -148,6 +149,7 @@ block content
                 label.form-label(for="serviceItemSpecificDate") Specific Date
                 input#serviceItemSpecificDate.form-control(type="date", name="specific_date")
         .modal-footer
+          button#deleteItemBtn.btn.btn-danger.me-auto(type="button", style="display:none;") Delete
           button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancel
           button.btn.btn-primary(type="button") Save
 
@@ -183,6 +185,7 @@ block content
               label.form-label(for="serviceEventNotes") Notes
               textarea#serviceEventNotes.form-control(name="notes", rows="3")
         .modal-footer
+          button#deleteEventBtn.btn.btn-danger.me-auto(type="button", style="display:none;") Delete
           button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancel
           button.btn.btn-primary(type="button") Save
 
@@ -226,6 +229,7 @@ block content
       document.getElementById('serviceItemModalLabel').textContent = title;
       document.getElementById('serviceItemForm').reset();
       document.getElementById('serviceItemId').value = '';
+      document.getElementById('deleteItemBtn').style.display = rowOrNull ? '' : 'none';
       if (rowOrNull) {
         const d = rowOrNull.dataset;
         document.getElementById('serviceItemId').value = d.id;
@@ -244,6 +248,19 @@ block content
     }
 
     document.querySelectorAll('.service-item-row').forEach(attachItemRowHandler);
+
+    document.getElementById('deleteItemBtn').addEventListener('click', async () => {
+      const id = document.getElementById('serviceItemId').value;
+      if (!confirm('Delete this service item and all its history? This cannot be undone.')) return;
+      try {
+        const res = await fetch(`/api/service-items/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error(await res.text());
+        currentItemRow.remove();
+        bootstrap.Modal.getInstance(document.getElementById('serviceItemModal')).hide();
+      } catch (err) {
+        alert('Failed to delete: ' + err.message);
+      }
+    });
 
     document.querySelector('.scheduled-tab-icon').addEventListener('click', e => {
       e.stopPropagation();
@@ -341,6 +358,7 @@ block content
       document.getElementById('serviceEventModalLabel').textContent = title;
       document.getElementById('serviceEventForm').reset();
       document.getElementById('serviceEventId').value = '';
+      document.getElementById('deleteEventBtn').style.display = rowOrNull ? '' : 'none';
       if (!rowOrNull) {
         document.getElementById('serviceEventDate').value = new Date().toISOString().split('T')[0];
       }
@@ -361,6 +379,19 @@ block content
     }
 
     document.querySelectorAll('.service-event-row').forEach(attachEventRowHandler);
+
+    document.getElementById('deleteEventBtn').addEventListener('click', async () => {
+      const id = document.getElementById('serviceEventId').value;
+      if (!confirm('Delete this service event? This cannot be undone.')) return;
+      try {
+        const res = await fetch(`/api/service-events/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error(await res.text());
+        currentEventRow.remove();
+        bootstrap.Modal.getInstance(document.getElementById('serviceEventModal')).hide();
+      } catch (err) {
+        alert('Failed to delete: ' + err.message);
+      }
+    });
 
     document.querySelector('.history-tab-icon').addEventListener('click', e => {
       e.stopPropagation();
@@ -415,6 +446,17 @@ block content
       document.getElementById('carYear').value = !{car.year};
       document.getElementById('carMileage').value = !{car.mileage};
       bootstrap.Modal.getOrCreateInstance(document.getElementById('carModal')).show();
+    });
+
+    document.getElementById('deleteCarBtn').addEventListener('click', async () => {
+      if (!confirm('Delete this car and all its service data? This cannot be undone.')) return;
+      try {
+        const res = await fetch(`/api/cars/${CAR_ID}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error(await res.text());
+        window.location.href = '/';
+      } catch (err) {
+        alert('Failed to delete: ' + err.message);
+      }
     });
 
     document.getElementById('carSaveBtn').addEventListener('click', async () => {
