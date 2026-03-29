@@ -167,8 +167,9 @@ block content
               label.form-label(for="serviceEventServiceItem") Service Item
               .input-group
                 select#serviceEventServiceItem.form-select(name="service_item_id", required)
-                  each item in serviceItems
+                  - for (const item of allServiceItems) {
                     option(value=item.id)= item.title
+                  - }
                 button#addServiceItemBtn.btn.btn-outline-secondary(type="button", title="New service item")
                   i.bi.bi-plus-square
             .row
