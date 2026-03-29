@@ -61,6 +61,7 @@ block content
   script.
     document.getElementById('cargoLogo').addEventListener('dblclick', () => {
       document.getElementById('newCarForm').reset();
+      document.getElementById('newCarMileage').value = '0';
       bootstrap.Modal.getOrCreateInstance(document.getElementById('newCarModal')).show();
     });
 
