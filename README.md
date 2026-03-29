@@ -18,11 +18,13 @@ CarGo is a comprehensive web application for tracking vehicle information, maint
 - **Database**: PostgreSQL 16
 - **Container**: Podman/Podman Compose
 - **Testing**: Jest, Supertest
+- **Dev tooling**: nodemon (auto-restart on file changes)
 
 ## Prerequisites
 
 - Node.js (v14 or higher)
 - npm
+- nodemon (`npm install -g nodemon` or installed as a dev dependency via `npm install`)
 - Podman and podman-compose
 
 ## Setup
@@ -65,18 +67,9 @@ cd backend
 npm start
 ```
 
-The application will be available at `http://localhost:8000`
+The application will be available at `http://localhost:8000`. The server uses **nodemon** and will automatically restart whenever backend files change.
 
 **Note:** The database must be running (step 1) before starting the server. If you see database connection errors, ensure PostgreSQL is running with `podman ps` or restart it with `podman-compose up -d`.
-
-### Development Mode
-
-For backend development with auto-reload:
-
-```bash
-cd backend
-npm run dev
-```
 
 ### Running Tests
 
@@ -191,17 +184,23 @@ CarGo/
 ├── backend/
 │   ├── api/
 │   │   ├── cars.js              # Cars CRUD endpoints
-│   │   ├── cars.test.js         # Cars tests
+│   │   ├── cars.test.js
 │   │   ├── service_items.js     # Service items CRUD endpoints
 │   │   ├── service_items.test.js
 │   │   ├── service_events.js    # Service events CRUD endpoints
 │   │   ├── service_events.test.js
+│   │   ├── projectedDate.js     # Projected service date calculation
+│   │   ├── projectedDate.test.js
 │   │   └── index.js             # API router
+│   ├── routes/
+│   │   ├── index.js             # Car list page route
+│   │   └── car.js               # Car details page route
 │   ├── db/
 │   │   ├── pool.js              # PostgreSQL connection pool
-│   │   ├── db_create.js         # Database schema
-│   │   ├── db_seed.js           # Sample data
-│   │   └── init.js              # Database initialization
+│   │   ├── migrate.js           # Migration runner
+│   │   ├── migrate-down.js      # Roll back one migration
+│   │   ├── migration-create.js  # Generate migration file
+│   │   └── migrations/          # Migration files
 │   ├── views/
 │   │   ├── layout.pug           # Base template
 │   │   ├── index.pug            # Car list page
