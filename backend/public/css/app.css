@@ -202,6 +202,10 @@ body {
   text-align: left;
 }
 
+.modal-content {
+  background-color: #dfdfdf;
+}
+
 .service-item-row,
 .service-event-row {
   cursor: pointer;
