@@ -3,7 +3,7 @@ extends layout
 block content
   .App
     header.App-header
-      img(src="/CarGo.svg" alt="CarGo Logo" style="height: 100px; margin-bottom: 10px;")
+      img#cargoLogo(src="/CarGo.svg" alt="CarGo Logo" style="height: 100px; margin-bottom: 10px; cursor: pointer;" title="Double-click to add a car")
       h1 CarGo
       h2 Automotive Maintenance Tracker
 
@@ -27,3 +27,61 @@ block content
                 td= car.model
                 td= car.year
                 td= car.mileage.toLocaleString() + ' mi'
+
+  //- New Car Modal
+  #newCarModal.modal.fade(tabindex="-1", aria-labelledby="newCarModalLabel", aria-hidden="true")
+    .modal-dialog
+      .modal-content
+        .modal-header
+          h5#newCarModalLabel.modal-title New Car
+          button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+        .modal-body
+          form#newCarForm
+            .mb-3
+              label.form-label(for="newCarName") Name
+              input#newCarName.form-control(type="text", name="name", required)
+            .row
+              .col-md-6.mb-3
+                label.form-label(for="newCarMake") Make
+                input#newCarMake.form-control(type="text", name="make", required)
+              .col-md-6.mb-3
+                label.form-label(for="newCarModel") Model
+                input#newCarModel.form-control(type="text", name="model", required)
+            .row
+              .col-md-6.mb-3
+                label.form-label(for="newCarYear") Year
+                input#newCarYear.form-control(type="number", name="year", required)
+              .col-md-6.mb-3
+                label.form-label(for="newCarMileage") Mileage
+                input#newCarMileage.form-control(type="number", name="mileage", min="0", required)
+        .modal-footer
+          button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancel
+          button#newCarSaveBtn.btn.btn-primary(type="button") Save
+
+  script.
+    document.getElementById('cargoLogo').addEventListener('dblclick', () => {
+      document.getElementById('newCarForm').reset();
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('newCarModal')).show();
+    });
+
+    document.getElementById('newCarSaveBtn').addEventListener('click', async () => {
+      const body = {
+        name: document.getElementById('newCarName').value,
+        make: document.getElementById('newCarMake').value,
+        model: document.getElementById('newCarModel').value,
+        year: document.getElementById('newCarYear').value,
+        mileage: document.getElementById('newCarMileage').value,
+      };
+      try {
+        const res = await fetch('/api/cars', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const car = await res.json();
+        window.location.href = `/car/${car.id}`;
+      } catch (err) {
+        alert('Failed to create car: ' + err.message);
+      }
+    });
