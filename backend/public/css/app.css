@@ -217,6 +217,14 @@ body {
   background-color: #e8f4fd !important;
 }
 
+.service-item-row.urgency-overdue {
+  background-color: #f8d7da !important;
+}
+
+.service-item-row.urgency-due-soon {
+  background-color: #fff3cd !important;
+}
+
 .service-table tbody tr:nth-child(even) {
   background-color: #f9f9f9;
 }

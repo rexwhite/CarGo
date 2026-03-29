@@ -1,4 +1,5 @@
 const { Router } = require('express');
+const { computeAvgMilesPerDay, calculateProjectedDate } = require('../api/projectedDate');
 
 module.exports = (pool) => {
   const router = Router();
@@ -43,6 +44,39 @@ module.exports = (pool) => {
 
       // Sort all events by date descending
       serviceEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      // Calculate average miles per day and projected dates
+      const avgMilesPerDay = computeAvgMilesPerDay(serviceEvents, car.mileage);
+
+      for (const item of serviceItems) {
+        const lastEvent = serviceEvents
+          .filter(e => e.service_item_id === item.id)
+          .sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
+        item.projected_date = calculateProjectedDate(item, lastEvent, car.mileage, avgMilesPerDay);
+      }
+
+      // Tag each item with a urgency status based on projected date
+      const now = new Date();
+      const in30Days = new Date(now.getTime() + 30 * 86400000);
+      for (const item of serviceItems) {
+        if (!item.projected_date) {
+          item.urgency = 'unknown';
+        } else if (new Date(item.projected_date) <= now) {
+          item.urgency = 'overdue';
+        } else if (new Date(item.projected_date) <= in30Days) {
+          item.urgency = 'due-soon';
+        } else {
+          item.urgency = 'ok';
+        }
+      }
+
+      // Sort scheduled items by projected date, nulls last
+      serviceItems.sort((a, b) => {
+        if (!a.projected_date && !b.projected_date) return 0;
+        if (!a.projected_date) return 1;
+        if (!b.projected_date) return -1;
+        return new Date(a.projected_date) - new Date(b.projected_date);
+      });
 
       res.render('car', { car, serviceItems, allServiceItems, serviceEvents });
     } catch (err) {
