@@ -63,45 +63,47 @@ describe('computeAvgMilesPerDay', () => {
 
 describe('calculateProjectedDate', () => {
   const CAR_MILEAGE = 20000;
+  const CAR_YEAR = 2020;
+  const CAR = { mileage: CAR_MILEAGE, year: CAR_YEAR };
   const AVG = 10; // 10 miles/day (injected directly)
 
   test('returns null when no interval or date fields are set', () => {
     const item = { mileage_interval: null, specific_mileage: null, month_interval: null, specific_date: null };
-    expect(calculateProjectedDate(item, null, CAR_MILEAGE, AVG, TODAY)).toBeNull();
+    expect(calculateProjectedDate(item, null, CAR, AVG, TODAY)).toBeNull();
   });
 
   test('projects from mileage_interval + last event mileage', () => {
     // last event at 19000 mi, interval 2000 → target 21000; need 1000 more at 10/day = 100 days
     const item = { mileage_interval: 2000, specific_mileage: null, month_interval: null, specific_date: null };
     const lastEvent = { date: daysFrom(TODAY, -90), mileage: 19000 };
-    const result = calculateProjectedDate(item, lastEvent, CAR_MILEAGE, AVG, TODAY);
+    const result = calculateProjectedDate(item, lastEvent, CAR, AVG, TODAY);
     expect(result.toDateString()).toBe(daysFrom(TODAY, 100).toDateString());
   });
 
   test('projects from specific_mileage', () => {
     // target 20500, need 500 more at 10/day = 50 days
     const item = { mileage_interval: null, specific_mileage: 20500, month_interval: null, specific_date: null };
-    const result = calculateProjectedDate(item, null, CAR_MILEAGE, AVG, TODAY);
+    const result = calculateProjectedDate(item, null, CAR, AVG, TODAY);
     expect(result.toDateString()).toBe(daysFrom(TODAY, 50).toDateString());
   });
 
   test('returns a past date when car has already passed target mileage', () => {
     // car at 20000, target 19000 → 1000 miles overdue at 10/day = 100 days ago
     const item = { mileage_interval: null, specific_mileage: 19000, month_interval: null, specific_date: null };
-    const result = calculateProjectedDate(item, null, CAR_MILEAGE, AVG, TODAY);
+    const result = calculateProjectedDate(item, null, CAR, AVG, TODAY);
     expect(result.toDateString()).toBe(daysFrom(TODAY, -100).toDateString());
   });
 
   test('projects from month_interval + last event date', () => {
     const item = { mileage_interval: null, specific_mileage: null, month_interval: 6, specific_date: null };
     const lastEvent = { date: new Date(2025, 0, 1), mileage: 18000 }; // Jan 1 local
-    const result = calculateProjectedDate(item, lastEvent, CAR_MILEAGE, AVG, TODAY);
+    const result = calculateProjectedDate(item, lastEvent, CAR, AVG, TODAY);
     expect(result.toDateString()).toBe(new Date(2025, 6, 1).toDateString()); // Jul 1 local
   });
 
   test('uses specific_date directly', () => {
     const item = { mileage_interval: null, specific_mileage: null, month_interval: null, specific_date: '2025-09-15' };
-    const result = calculateProjectedDate(item, null, CAR_MILEAGE, AVG, TODAY);
+    const result = calculateProjectedDate(item, null, CAR, AVG, TODAY);
     expect(result.toDateString()).toBe(new Date('2025-09-15').toDateString());
   });
 
@@ -116,47 +118,69 @@ describe('calculateProjectedDate', () => {
       specific_date: '2025-12-01',
     };
     const lastEvent = { date: new Date(2025, 0, 1), mileage: 19000 };
-    const result = calculateProjectedDate(item, lastEvent, CAR_MILEAGE, AVG, TODAY);
+    const result = calculateProjectedDate(item, lastEvent, CAR, AVG, TODAY);
     expect(result.toDateString()).toBe(new Date(2025, 6, 1).toDateString());
   });
 
-  test('uses mileage 0 as base when no last event for mileage_interval', () => {
-    // target = 0 + 2000 = 2000; car at 20000 → 18000 miles overdue at 10/day = 1800 days ago
+  test('uses mileage_interval as target when no last event', () => {
+    // target = 2000; car at 20000 → 18000 miles overdue at 10/day = 1800 days ago
     const item = { mileage_interval: 2000, specific_mileage: null, month_interval: null, specific_date: null };
-    const result = calculateProjectedDate(item, null, CAR_MILEAGE, AVG, TODAY);
+    const result = calculateProjectedDate(item, null, CAR, AVG, TODAY);
     expect(result.toDateString()).toBe(daysFrom(TODAY, -1800).toDateString());
   });
 
   test('projects future date from mileage_interval with no last event when target is ahead', () => {
-    // car at 1000, target = 0 + 2000 = 2000 → need 1000 more at 10/day = 100 days
+    // car at 1000, target = 2000 → need 1000 more at 10/day = 100 days
     const item = { mileage_interval: 2000, specific_mileage: null, month_interval: null, specific_date: null };
-    const result = calculateProjectedDate(item, null, 1000, AVG, TODAY);
+    const result = calculateProjectedDate(item, null, { mileage: 1000, year: CAR_YEAR }, AVG, TODAY);
     expect(result.toDateString()).toBe(daysFrom(TODAY, 100).toDateString());
   });
 
   test('skips mileage projections when avgMilesPerDay is null', () => {
     const item = { mileage_interval: 2000, specific_mileage: 21000, month_interval: null, specific_date: null };
     const lastEvent = { date: new Date(2025, 0, 1), mileage: 19000 };
-    expect(calculateProjectedDate(item, lastEvent, CAR_MILEAGE, null, TODAY)).toBeNull();
+    expect(calculateProjectedDate(item, lastEvent, CAR, null, TODAY)).toBeNull();
+  });
+
+  test('projects from car year + month_interval when no last event', () => {
+    const item = { month_interval: 12 }; // Jan 1 2020 + 12 months = Jan 1 2021
+    const result = calculateProjectedDate(item, null, CAR, AVG, TODAY);
+    expect(result.toDateString()).toBe(new Date(2021, 0, 1).toDateString());
+  });
+
+  test('filters specific_date by last event date', () => {
+    const lastEvent = { date: new Date(2025, 6, 1), mileage: 19000 }; // Jul 1
+    const item = { specific_date: '2025-01-01' }; // Jan 1 (before Jul 1)
+    const result = calculateProjectedDate(item, lastEvent, CAR, AVG, TODAY);
+    expect(result).toBeNull();
+  });
+
+  test('filters specific_mileage by last event mileage', () => {
+    const lastEvent = { date: new Date(2025, 0, 1), mileage: 19000 };
+    const item = { specific_mileage: 18000 }; // before 19000
+    const result = calculateProjectedDate(item, lastEvent, CAR, AVG, TODAY);
+    expect(result).toBeNull();
   });
 });
 
 // Regression: car with one service event total and multiple items with no events
 // Previously returned N/A for all mileage-interval items because avgMilesPerDay was null
 describe('regression: single-event car with un-serviced items', () => {
+  const CAR_YEAR = 2020;
   test('produces a non-null projected date for a mileage-interval item with no lastEvent', () => {
     // Car has one service event (for a different item), current mileage is 12000
     const allEvents = [{ date: daysFrom(TODAY, -50), mileage: 10000 }];
     const carMileage = 12000; // 2000 miles in 50 days = 40 mi/day
+    const car = { mileage: carMileage, year: CAR_YEAR };
 
     const avg = computeAvgMilesPerDay(allEvents, carMileage, TODAY);
     expect(avg).toBeCloseTo(40, 0); // fallback to single event + carMileage
 
     // Service item with mileage_interval, no events ever logged
     const item = { mileage_interval: 5000, specific_mileage: null, month_interval: null, specific_date: null };
-    const result = calculateProjectedDate(item, null, carMileage, avg, TODAY);
+    const result = calculateProjectedDate(item, null, car, avg, TODAY);
 
-    // target = 0 + 5000 = 5000; car already at 12000 → 7000 miles overdue at 40/day = 175 days ago
+    // target = 5000; car already at 12000 → 7000 miles overdue at 40/day = 175 days ago
     expect(result).not.toBeNull();
     expect(result.toDateString()).toBe(daysFrom(TODAY, -175).toDateString());
   });
@@ -165,13 +189,14 @@ describe('regression: single-event car with un-serviced items', () => {
     // Car has one event 10 days ago at 1000 mi; current mileage 1100 → 10 mi/day
     const allEvents = [{ date: daysFrom(TODAY, -10), mileage: 1000 }];
     const carMileage = 1100;
+    const car = { mileage: carMileage, year: CAR_YEAR };
 
     const avg = computeAvgMilesPerDay(allEvents, carMileage, TODAY);
     expect(avg).toBeCloseTo(10, 1);
 
     // Service item: every 5000 miles, never done → target = 5000; need 3900 more at 10/day = 390 days
     const item = { mileage_interval: 5000, specific_mileage: null, month_interval: null, specific_date: null };
-    const result = calculateProjectedDate(item, null, carMileage, avg, TODAY);
+    const result = calculateProjectedDate(item, null, car, avg, TODAY);
 
     expect(result).not.toBeNull();
     expect(result.toDateString()).toBe(daysFrom(TODAY, 390).toDateString());

@@ -49,7 +49,7 @@ async function runMigrations() {
     await migrate({
       databaseUrl,
       migrationsTable: 'pgmigrations_seeds',
-      dir: `${__dirname}/migrations/seeds`,
+      dir: `${__dirname}/seeds`,
       direction: 'up',
       log: (msg) => console.log(msg),
     });

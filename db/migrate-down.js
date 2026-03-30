@@ -6,7 +6,7 @@ const databaseUrl = { ...connectionConfig, database: dbName };
 const target = process.argv[2]; // optional: "seeds" to roll back seeds instead
 
 const dir = target === 'seeds'
-  ? `${__dirname}/migrations/seeds`
+  ? `${__dirname}/seeds`
   : `${__dirname}/migrations`;
 
 const migrationsTable = target === 'seeds' ? 'pgmigrations_seeds' : 'pgmigrations';

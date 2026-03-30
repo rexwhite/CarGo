@@ -9,6 +9,7 @@ Automotive Maintenance Tracker
 - [ ] Service event PDF generation/download — export service history as a PDF report
 - [ ] Car icon support — associate a custom icon or photo with each vehicle
 - [ ] Compound service events/items — group related service items into a single event
+- [ ] Expandable scheduled service rows — click to expand a row and see dates and mileage of past service events for that item
 
 ## Overview
 

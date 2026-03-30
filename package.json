@@ -9,7 +9,6 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:watch": "jest --watch",
-    "db:init": "node db/init.js",
     "db:migrate": "node db/migrate.js",
     "db:migrate:down": "node db/migrate-down.js",
     "db:migrate:create": "node db/migration-create.js"

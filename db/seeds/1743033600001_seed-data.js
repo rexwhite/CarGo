@@ -6,7 +6,7 @@ exports.up = (pgm) => {
     INSERT INTO cars (name, make, model, year, mileage) VALUES
       ('Daily Driver', 'Toyota', 'Camry', 2018, 45230),
       ('Weekend Cruiser', 'Honda', 'Civic', 2020, 12500),
-      ('Old Reliable', 'Ford', 'F-150', 2015, 89000);
+      ('Old Reliable', 'Ford', 'F-150', 2015, 89300);
 
     INSERT INTO service_items (car_id, title, description, mileage_interval, month_interval) VALUES
       (1, 'Oil Change', 'Replace engine oil and filter', 5000, 6),
@@ -31,12 +31,18 @@ exports.up = (pgm) => {
       (1, '2024-06-20', 45000, 'Quick Lube', 'Replaced oil filter'),
       (2, '2024-03-10', 42000, 'Tire Shop', 'Rotated all four tires'),
       (4, '2024-02-05', 41000, 'Brake Masters', 'Brake pads at 50% life'),
+      (4, '2025-04-15', 45100, 'Brake Masters', 'Brake pads at 30% life'),
+      (3, '2026-01-15', 45200, 'DIY', 'Replaced engine air filter'),
       (6, '2024-04-12', 10000, 'Honda Dealer', 'First oil change, complimentary'),
       (7, '2024-04-12', 10000, 'Honda Dealer', 'Rotated during oil change'),
+      (7, '2025-10-01', 11000, 'Tire Shop', 'Rotated and balanced tires'),
       (11, '2024-01-08', 85000, 'DIY', 'Changed oil in garage'),
       (11, '2024-06-15', 89000, 'DIY', 'Used Mobil 1 synthetic'),
       (12, '2024-03-20', 87000, 'DIY', 'Rotated tires, checked pressure'),
-      (13, '2024-05-01', 88000, 'AutoZone', 'Battery tested, cleaned terminals');
+      (13, '2024-05-01', 88000, 'AutoZone', 'Battery tested, cleaned terminals'),
+      (15, '2025-03-01', 89100, 'DIY', 'Replaced fuel filter'),
+      (14, '2025-06-01', 89200, 'Ford Dealer', 'Changed differential fluid'),
+      (16, '2025-09-01', 89300, 'DIY', 'Flushed and replaced brake fluid');
   `);
 };
 

@@ -28,17 +28,37 @@ function computeAvgMilesPerDay(serviceEvents, carMileage = null, now = new Date(
 /**
  * Calculate the projected date for a service item.
  *
+ * mileage_date(x) is the extrapolated date a car is expected to reach mileage 'x' given the
+ * last recorded mileage and calculated avgMilesPerDay.  This date may be in the past
+ * (interpolated).
+ *
+ * If there are no service events fot this item:
+ *   - projected_date = lesser of
+ *     - specific_date, if defined
+ *     - mileage_date(specific_mileage)
+ *     - Jan 1 of the car model year plus month_interval
+ *     - mileage_date(mileage_interval)
+ *
+ * If there is at least on service event:
+ *   - projected_date = lesser of
+ *     - specific_date if defined and specific_date > latest event date
+ *     - mileage_date(specific_mileage) if defined and specific_mileage > latest event mileage
+ *     - last event date + month_interval
+ *     - mileage_date(last event mileage + mileage_interval)
+ *
  * @param {object} item - service item with optional fields:
  *   mileage_interval, specific_mileage, month_interval, specific_date
  * @param {object|null} lastEvent - most recent service event for this item { date, mileage }, or null
- * @param {number} carMileage - current car mileage
+ * @param {object} car - car object { mileage, year }
  * @param {number|null} avgMilesPerDay - average miles driven per day (from computeAvgMilesPerDay)
  * @param {Date} today - reference date (defaults to now, injectable for testing)
  * @returns {Date|null}
  */
-function calculateProjectedDate(item, lastEvent, carMileage, avgMilesPerDay, today = new Date()) {
+function calculateProjectedDate(item, lastEvent, car, avgMilesPerDay, today = new Date()) {
   const todayMs = new Date(today);
   todayMs.setHours(0, 0, 0, 0);
+
+  const carMileage = car.mileage;
 
   function mileageToDate(targetMileage) {
     if (avgMilesPerDay == null || avgMilesPerDay <= 0) return null;
@@ -50,25 +70,58 @@ function calculateProjectedDate(item, lastEvent, carMileage, avgMilesPerDay, tod
 
   const candidates = [];
 
-  if (item.mileage_interval) {
-    const baseMileage = lastEvent ? lastEvent.mileage : 0;
-    const d = mileageToDate(baseMileage + item.mileage_interval);
-    if (d) candidates.push(d);
-  }
+  if (!lastEvent) {
+    // If there are no service events for this item:
+    // - projected_date = lesser of
+    //   - specific_date, if defined
+    if (item.specific_date) {
+      candidates.push(new Date(item.specific_date));
+    }
 
-  if (item.specific_mileage) {
-    const d = mileageToDate(item.specific_mileage);
-    if (d) candidates.push(d);
-  }
+    //   - mileage_date(specific_mileage)
+    if (item.specific_mileage != null) {
+      const d = mileageToDate(item.specific_mileage);
+      if (d) candidates.push(d);
+    }
 
-  if (item.month_interval && lastEvent) {
-    const d = new Date(lastEvent.date);
-    d.setMonth(d.getMonth() + item.month_interval);
-    candidates.push(d);
-  }
+    //   - Jan 1 of the car model year plus month_interval
+    if (item.month_interval != null && car.year != null) {
+      const d = new Date(car.year, 0, 1);
+      d.setMonth(d.getMonth() + item.month_interval);
+      candidates.push(d);
+    }
 
-  if (item.specific_date) {
-    candidates.push(new Date(item.specific_date));
+    //   - mileage_date(mileage_interval)
+    if (item.mileage_interval != null) {
+      const d = mileageToDate(item.mileage_interval);
+      if (d) candidates.push(d);
+    }
+  } else {
+    // If there is at least one service event:
+    // - projected_date = lesser of
+    //   - specific_date if defined and specific_date > latest event date
+    if (item.specific_date && new Date(item.specific_date) > new Date(lastEvent.date)) {
+      candidates.push(new Date(item.specific_date));
+    }
+
+    //   - mileage_date(specific_mileage) if defined and specific_mileage > latest event mileage
+    if (item.specific_mileage != null && item.specific_mileage > lastEvent.mileage) {
+      const d = mileageToDate(item.specific_mileage);
+      if (d) candidates.push(d);
+    }
+
+    //   - last event date + month_interval
+    if (item.month_interval != null) {
+      const d = new Date(lastEvent.date);
+      d.setMonth(d.getMonth() + item.month_interval);
+      candidates.push(d);
+    }
+
+    //   - mileage_date(last event mileage + mileage_interval)
+    if (item.mileage_interval != null) {
+      const d = mileageToDate(lastEvent.mileage + item.mileage_interval);
+      if (d) candidates.push(d);
+    }
   }
 
   return candidates.length > 0

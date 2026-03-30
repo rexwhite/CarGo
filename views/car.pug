@@ -52,13 +52,20 @@ block content
                       data-specific-mileage=item.specific_mileage || ''
                       data-specific-date=item.specific_date ? new Date(item.specific_date).toISOString().split('T')[0] : ''
                     )
-                      td= item.projected_date ? new Date(item.projected_date).toLocaleDateString() : 'N/A'
+                      td.text-center
+                        if item.projected_date
+                          if new Date(item.projected_date) > new Date(new Date().getTime() + 365 * 86400000)
+                            | --
+                          else
+                            = new Date(item.projected_date).toLocaleDateString()
+                        else
+                          | N/A
                       td= item.title
-                      td= item.description || 'N/A'
-                      td= item.mileage_interval ? item.mileage_interval.toLocaleString() + ' mi' : 'N/A'
-                      td= item.month_interval ? item.month_interval + ' months' : 'N/A'
-                      td= item.specific_mileage ? item.specific_mileage.toLocaleString() + ' mi' : 'N/A'
-                      td= item.specific_date ? new Date(item.specific_date).toLocaleDateString() : 'N/A'
+                      td(class=item.description ? '' : 'text-center')= item.description || 'N/A'
+                      td(class=item.mileage_interval ? '' : 'text-center')= item.mileage_interval ? item.mileage_interval.toLocaleString() + ' mi' : 'N/A'
+                      td(class=item.month_interval ? '' : 'text-center')= item.month_interval ? item.month_interval + ' months' : 'N/A'
+                      td(class=item.specific_mileage ? '' : 'text-center')= item.specific_mileage ? item.specific_mileage.toLocaleString() + ' mi' : 'N/A'
+                      td(class=item.specific_date ? '' : 'text-center')= item.specific_date ? new Date(item.specific_date).toLocaleDateString() : 'N/A'
 
           .tab-pane.fade#history(role="tabpanel", aria-labelledby="history-tab")
             if serviceEvents.length === 0
@@ -86,8 +93,8 @@ block content
                       td= new Date(event.date).toLocaleDateString()
                       td= event.service_item_title
                       td= event.mileage.toLocaleString() + ' mi'
-                      td= event.performed_by || 'N/A'
-                      td= event.notes || 'N/A'
+                      td(class=(event.performed_by) ? '' : 'text-center')= event.performed_by || 'N/A'
+                      td(class=(event.notes) ? '' : 'text-center')= event.notes || 'N/A'
 
   //- Car Modal
   #carModal.modal.fade(tabindex="-1", aria-labelledby="carModalLabel", aria-hidden="true")
