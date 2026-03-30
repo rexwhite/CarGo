@@ -2,6 +2,14 @@
 
 Automotive Maintenance Tracker
 
+## To Do
+
+- [ ] Car mileage graph — visualize odometer history over time
+- [ ] Receipt upload — attach photos/PDFs of receipts to service events
+- [ ] Service event PDF generation/download — export service history as a PDF report
+- [ ] Car icon support — associate a custom icon or photo with each vehicle
+- [ ] Compound service events/items — group related service items into a single event
+
 ## Overview
 
 CarGo is a comprehensive web application for tracking vehicle information, maintenance schedules, and service history. Built with Node.js/Express backend using Pug templates for server-rendered HTML and PostgreSQL for data persistence. Features include:
