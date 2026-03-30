@@ -152,6 +152,24 @@ describe('POST /api/service-items', () => {
     );
   });
 
+  test('should create a service item with only title', async () => {
+    const newItem = { car_id: 1, title: 'Check Fluids', description: null, mileage_interval: null, month_interval: null, specific_mileage: null, specific_date: null };
+    const createdItem = { id: 6, ...newItem };
+
+    mockPool.query.mockResolvedValue({ rows: [createdItem] });
+
+    const response = await request(app)
+      .post('/api/service-items')
+      .send(newItem);
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual(createdItem);
+    expect(mockPool.query).toHaveBeenCalledWith(
+      'INSERT INTO service_items (car_id, title, description, mileage_interval, month_interval, specific_mileage, specific_date) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [newItem.car_id, newItem.title, newItem.description, newItem.mileage_interval, newItem.month_interval, newItem.specific_mileage, newItem.specific_date]
+    );
+  });
+
   test('should handle database errors', async () => {
     mockPool.query.mockRejectedValue(new Error('Database error'));
 

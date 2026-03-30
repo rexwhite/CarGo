@@ -208,6 +208,8 @@ block content
   script.
     const CAR_ID = !{car.id};
     const orNull = v => v === '' ? null : v;
+    let allServiceEvents = !{JSON.stringify(serviceEvents)};
+    let carMileage = !{car.mileage};
 
     // ── Service Items ────────────────────────────────────────────────
 
@@ -403,6 +405,11 @@ block content
         const res = await fetch(`/api/service-events/${id}`, { method: 'DELETE' });
         if (!res.ok) throw new Error(await res.text());
         currentEventRow.remove();
+
+        // Update local events array
+        allServiceEvents = allServiceEvents.filter(e => e.id != id);
+        updateMileageChart();
+
         bootstrap.Modal.getInstance(document.getElementById('serviceEventModal')).hide();
       } catch (err) {
         alert('Failed to delete: ' + err.message);
@@ -436,6 +443,10 @@ block content
           if (!res.ok) throw new Error(await res.text());
           event = await res.json();
           populateEventRowFromData(currentEventRow, event, serviceItemTitle);
+
+          // Update local events array
+          const idx = allServiceEvents.findIndex(e => e.id === event.id);
+          if (idx !== -1) allServiceEvents[idx] = event;
         } else {
           const res = await fetch('/api/service-events', {
             method: 'POST',
@@ -446,7 +457,20 @@ block content
           event = await res.json();
           const tbody = document.querySelector('#history .service-table tbody');
           tbody.appendChild(makeEventRow(event, serviceItemTitle));
+
+          // Add to local events array
+          allServiceEvents.push(event);
         }
+
+        // Update mileage if this event has higher mileage
+        if (event.mileage > carMileage) {
+          carMileage = event.mileage;
+          const mileageDd = document.querySelectorAll('.car-details-info dd')[3];
+          if (mileageDd) mileageDd.textContent = Number(carMileage).toLocaleString() + ' mi';
+        }
+
+        updateMileageChart();
+
         bootstrap.Modal.getInstance(document.getElementById('serviceEventModal')).hide();
       } catch (err) {
         alert('Failed to save: ' + err.message);
@@ -455,28 +479,53 @@ block content
 
     // ── Mileage Chart ────────────────────────────────────────────────
     let mileageChart = null;
+
+    function updateMileageChart() {
+      if (!mileageChart) return;
+
+      // Extract unique (date, mileage) pairs from events
+      const dataPoints = allServiceEvents.map(e => ({
+        x: new Date(e.date).toISOString().split('T')[0],
+        y: e.mileage
+      }));
+
+      // Add current car mileage as of today
+      dataPoints.push({
+        x: new Date().toISOString().split('T')[0],
+        y: carMileage
+      });
+
+      // Sort by date and remove duplicates (keep max mileage for same date)
+      const sortedPoints = dataPoints.sort((a, b) => a.x.localeCompare(b.x));
+      const filteredPoints = [];
+      for (const p of sortedPoints) {
+        if (filteredPoints.length > 0 && filteredPoints[filteredPoints.length - 1].x === p.x) {
+          filteredPoints[filteredPoints.length - 1].y = Math.max(filteredPoints[filteredPoints.length - 1].y, p.y);
+        } else {
+          filteredPoints.push(p);
+        }
+      }
+
+      mileageChart.data.datasets[0].data = filteredPoints;
+      mileageChart.update();
+    }
+
     const mileageTab = document.getElementById('mileage-tab');
     if (mileageTab) {
       mileageTab.addEventListener('shown.bs.tab', () => {
         if (mileageChart) return;
 
         const ctx = document.getElementById('mileageChart').getContext('2d');
-        const events = !{JSON.stringify(serviceEvents)};
-        const currentMileage = !{car.mileage};
 
-        // Extract unique (date, mileage) pairs from events
-        const dataPoints = events.map(e => ({
+        // Initial data calculation
+        const dataPoints = allServiceEvents.map(e => ({
           x: new Date(e.date).toISOString().split('T')[0],
           y: e.mileage
         }));
-
-        // Add current car mileage as of today
         dataPoints.push({
           x: new Date().toISOString().split('T')[0],
-          y: currentMileage
+          y: carMileage
         });
-
-        // Sort by date and remove duplicates (keep max mileage for same date)
         const sortedPoints = dataPoints.sort((a, b) => a.x.localeCompare(b.x));
         const filteredPoints = [];
         for (const p of sortedPoints) {
@@ -588,6 +637,8 @@ block content
         });
         if (!res.ok) throw new Error(await res.text());
         const car = await res.json();
+        carMileage = car.mileage;
+        updateMileageChart();
         document.querySelector('.car-details-card h2').textContent = car.name;
         const dds = document.querySelectorAll('.car-details-info dd');
         dds[0].textContent = car.make;

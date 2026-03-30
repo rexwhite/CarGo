@@ -22,10 +22,8 @@ module.exports = (pool) => {
       );
       const allServiceItems = allServiceItemsResult.rows;
 
-      // Scheduled service table: exclude non-repeating items with no specific date
-      const serviceItems = allServiceItems.filter(item =>
-        item.mileage_interval != null || item.month_interval != null || item.specific_date != null
-      );
+      // Scheduled service table: include all service items
+      const serviceItems = allServiceItems;
 
       // Fetch service events for all service items
       const serviceEvents = [];
