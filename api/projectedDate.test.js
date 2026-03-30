@@ -85,12 +85,11 @@ describe('calculateProjectedDate', () => {
     expect(result.toDateString()).toBe(daysFrom(TODAY, 50).toDateString());
   });
 
-  test('returns today when car has already passed target mileage', () => {
+  test('returns a past date when car has already passed target mileage', () => {
+    // car at 20000, target 19000 → 1000 miles overdue at 10/day = 100 days ago
     const item = { mileage_interval: null, specific_mileage: 19000, month_interval: null, specific_date: null };
     const result = calculateProjectedDate(item, null, CAR_MILEAGE, AVG, TODAY);
-    const todayCopy = new Date(TODAY);
-    todayCopy.setHours(0, 0, 0, 0);
-    expect(result.toDateString()).toBe(todayCopy.toDateString());
+    expect(result.toDateString()).toBe(daysFrom(TODAY, -100).toDateString());
   });
 
   test('projects from month_interval + last event date', () => {
@@ -122,12 +121,10 @@ describe('calculateProjectedDate', () => {
   });
 
   test('uses mileage 0 as base when no last event for mileage_interval', () => {
-    // target = 0 + 2000 = 2000; car at 20000 → already past → today
+    // target = 0 + 2000 = 2000; car at 20000 → 18000 miles overdue at 10/day = 1800 days ago
     const item = { mileage_interval: 2000, specific_mileage: null, month_interval: null, specific_date: null };
     const result = calculateProjectedDate(item, null, CAR_MILEAGE, AVG, TODAY);
-    const todayCopy = new Date(TODAY);
-    todayCopy.setHours(0, 0, 0, 0);
-    expect(result.toDateString()).toBe(todayCopy.toDateString());
+    expect(result.toDateString()).toBe(daysFrom(TODAY, -1800).toDateString());
   });
 
   test('projects future date from mileage_interval with no last event when target is ahead', () => {
@@ -159,11 +156,9 @@ describe('regression: single-event car with un-serviced items', () => {
     const item = { mileage_interval: 5000, specific_mileage: null, month_interval: null, specific_date: null };
     const result = calculateProjectedDate(item, null, carMileage, avg, TODAY);
 
-    // target = 0 + 5000 = 5000; car already at 12000 → overdue → today
-    const todayCopy = new Date(TODAY);
-    todayCopy.setHours(0, 0, 0, 0);
+    // target = 0 + 5000 = 5000; car already at 12000 → 7000 miles overdue at 40/day = 175 days ago
     expect(result).not.toBeNull();
-    expect(result.toDateString()).toBe(todayCopy.toDateString());
+    expect(result.toDateString()).toBe(daysFrom(TODAY, -175).toDateString());
   });
 
   test('produces a future projected date when mileage target is still ahead', () => {

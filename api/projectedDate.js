@@ -42,9 +42,10 @@ function calculateProjectedDate(item, lastEvent, carMileage, avgMilesPerDay, tod
 
   function mileageToDate(targetMileage) {
     if (avgMilesPerDay == null || avgMilesPerDay <= 0) return null;
-    if (carMileage >= targetMileage) return new Date(todayMs);
-    const days = (targetMileage - carMileage) / avgMilesPerDay;
-    return new Date(todayMs.getTime() + days * 86400000);
+    const days = Math.round((targetMileage - carMileage) / avgMilesPerDay);
+    const d = new Date(todayMs);
+    d.setDate(d.getDate() + days);
+    return d;
   }
 
   const candidates = [];
