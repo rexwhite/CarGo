@@ -14,7 +14,11 @@
     "db:migrate:create": "node db/migration-create.js"
   },
   "dependencies": {
+    "bootstrap": "5.3.8",
+    "chart.js": "4.5.1",
+    "chartjs-adapter-luxon": "1.3.1",
     "express": "^4.18.2",
+    "luxon": "3.7.2",
     "node-pg-migrate": "^8.0.4",
     "pg": "^8.16.3",
     "pug": "^3.0.4"

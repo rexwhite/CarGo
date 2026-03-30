@@ -25,6 +25,8 @@ block content
             button#scheduled-tab.nav-link.active(data-bs-toggle="tab", data-bs-target="#scheduled", type="button", role="tab", aria-controls="scheduled", aria-selected="true") Scheduled Service #[i.bi.bi-plus-square.scheduled-tab-icon]
           li.nav-item(role="presentation")
             button#history-tab.nav-link(data-bs-toggle="tab", data-bs-target="#history", type="button", role="tab", aria-controls="history", aria-selected="false") Service History #[i.bi.bi-plus-square.history-tab-icon]
+          li.nav-item(role="presentation")
+            button#mileage-tab.nav-link(data-bs-toggle="tab", data-bs-target="#mileage", type="button", role="tab", aria-controls="mileage", aria-selected="false") Mileage
 
         .tab-content#serviceTabsContent
           .tab-pane.fade.show.active#scheduled(role="tabpanel", aria-labelledby="scheduled-tab")
@@ -95,6 +97,10 @@ block content
                       td= event.mileage.toLocaleString() + ' mi'
                       td(class=(event.performed_by) ? '' : 'text-center')= event.performed_by || 'N/A'
                       td(class=(event.notes) ? '' : 'text-center')= event.notes || 'N/A'
+
+          .tab-pane.fade#mileage(role="tabpanel", aria-labelledby="mileage-tab")
+            .chart-container(style="position: relative; height:40vh; width:100%")
+              canvas#mileageChart
 
   //- Car Modal
   #carModal.modal.fade(tabindex="-1", aria-labelledby="carModalLabel", aria-hidden="true")
@@ -446,6 +452,103 @@ block content
         alert('Failed to save: ' + err.message);
       }
     });
+
+    // ── Mileage Chart ────────────────────────────────────────────────
+    let mileageChart = null;
+    const mileageTab = document.getElementById('mileage-tab');
+    if (mileageTab) {
+      mileageTab.addEventListener('shown.bs.tab', () => {
+        if (mileageChart) return;
+
+        const ctx = document.getElementById('mileageChart').getContext('2d');
+        const events = !{JSON.stringify(serviceEvents)};
+        const currentMileage = !{car.mileage};
+
+        // Extract unique (date, mileage) pairs from events
+        const dataPoints = events.map(e => ({
+          x: new Date(e.date).toISOString().split('T')[0],
+          y: e.mileage
+        }));
+
+        // Add current car mileage as of today
+        dataPoints.push({
+          x: new Date().toISOString().split('T')[0],
+          y: currentMileage
+        });
+
+        // Sort by date and remove duplicates (keep max mileage for same date)
+        const sortedPoints = dataPoints.sort((a, b) => a.x.localeCompare(b.x));
+        const filteredPoints = [];
+        for (const p of sortedPoints) {
+          if (filteredPoints.length > 0 && filteredPoints[filteredPoints.length - 1].x === p.x) {
+            filteredPoints[filteredPoints.length - 1].y = Math.max(filteredPoints[filteredPoints.length - 1].y, p.y);
+          } else {
+            filteredPoints.push(p);
+          }
+        }
+
+        mileageChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            datasets: [{
+              label: 'Car Mileage',
+              data: filteredPoints,
+              borderColor: '#ffd700',
+              backgroundColor: 'rgba(255, 215, 0, 0.2)',
+              fill: true,
+              tension: 0.1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                type: 'time',
+                time: {
+                  unit: 'month',
+                  displayFormats: {
+                    month: 'MMM yyyy'
+                  }
+                },
+                title: {
+                  display: true,
+                  text: 'Date',
+                  color: '#ffffff'
+                },
+                ticks: {
+                  color: '#ffffff'
+                },
+                grid: {
+                  color: 'rgba(255, 255, 255, 0.1)'
+              }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: 'Mileage (mi)',
+                  color: '#ffffff'
+                },
+                ticks: {
+                  color: '#ffffff'
+                },
+                grid: {
+                  color: 'rgba(255, 255, 255, 0.1)'
+                },
+                beginAtZero: false
+              }
+            },
+            plugins: {
+              legend: {
+                labels: {
+                  color: '#ffffff'
+                }
+              }
+            }
+          }
+        });
+      });
+    }
 
     // ── Car Details ──────────────────────────────────────────────────
 

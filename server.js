@@ -15,6 +15,12 @@ app.use(express.json());
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Serve chart.js, luxon, and chartjs-adapter-luxon from node_modules
+app.use('/js/chart.js', express.static(path.join(__dirname, 'node_modules/chart.js/dist')));
+app.use('/js/luxon', express.static(path.join(__dirname, 'node_modules/luxon/build/global')));
+app.use('/js/chartjs-adapter-luxon', express.static(path.join(__dirname, 'node_modules/chartjs-adapter-luxon/dist')));
+app.use('/js/bootstrap', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/js')));
+
 // Mount API routes
 app.use('/api', require('./api')(pool));
 
