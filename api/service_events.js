@@ -2,80 +2,132 @@ const express = require('express');
 const router = express.Router();
 
 module.exports = (pool) => {
-  // Get all service events for a specific service item
-  router.get('/service-item/:serviceItemId', async (req, res) => {
+  // Get all service events for a car with their items
+  router.get('/car/:carId', async (req, res) => {
     try {
-      const { serviceItemId } = req.params;
+      const { carId } = req.params;
       const result = await pool.query(
-        'SELECT * FROM service_events WHERE service_item_id = $1 ORDER BY date DESC',
-        [serviceItemId]
+        `SELECT se.*, sei.id AS sei_id, sei.service_item_id, si.title AS service_item_title, sei.notes AS item_notes
+         FROM service_events se
+         JOIN service_event_items sei ON sei.event_id = se.id
+         JOIN service_items si ON si.id = sei.service_item_id
+         WHERE se.car_id = $1
+         ORDER BY se.date DESC, se.id DESC, sei.id`,
+        [carId]
       );
-      res.json(result.rows);
+      const events = groupEventRows(result.rows);
+      res.json(events);
     } catch (err) {
       console.error('Error fetching service events:', err);
       res.status(500).json({ error: 'Failed to fetch service events' });
     }
   });
 
-  // Get a single service event by ID
+  // Get a single service event by ID with its items
   router.get('/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      const result = await pool.query('SELECT * FROM service_events WHERE id = $1', [id]);
+      const result = await pool.query(
+        `SELECT se.*, sei.id AS sei_id, sei.service_item_id, si.title AS service_item_title, sei.notes AS item_notes
+         FROM service_events se
+         JOIN service_event_items sei ON sei.event_id = se.id
+         JOIN service_items si ON si.id = sei.service_item_id
+         WHERE se.id = $1
+         ORDER BY sei.id`,
+        [id]
+      );
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Service event not found' });
       }
-      res.json(result.rows[0]);
+      res.json(groupEventRows(result.rows)[0]);
     } catch (err) {
       console.error('Error fetching service event:', err);
       res.status(500).json({ error: 'Failed to fetch service event' });
     }
   });
 
-  // Create a new service event
+  // Create a new service event with items
   router.post('/', async (req, res) => {
+    const client = await pool.connect();
     try {
-      const { service_item_id, date, mileage, performed_by, notes } = req.body;
-      const result = await pool.query(
-        'INSERT INTO service_events (service_item_id, date, mileage, performed_by, notes) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [service_item_id, date, mileage, performed_by, notes]
+      const { car_id, date, mileage, performed_by, description, notes, items } = req.body;
+      await client.query('BEGIN');
+
+      const eventResult = await client.query(
+        `INSERT INTO service_events (car_id, date, mileage, performed_by, description, notes)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [car_id, date, mileage, performed_by || null, description || null, notes || null]
       );
+      const event = eventResult.rows[0];
+
+      for (const item of (items || [])) {
+        await client.query(
+          `INSERT INTO service_event_items (event_id, service_item_id, notes) VALUES ($1, $2, $3)`,
+          [event.id, item.service_item_id, item.notes || null]
+        );
+      }
 
       // Update car mileage if this event's mileage exceeds the current value
-      await pool.query(
+      await client.query(
         `UPDATE cars SET mileage = $1, updated_at = CURRENT_TIMESTAMP
-         WHERE id = (SELECT car_id FROM service_items WHERE id = $2)
-         AND mileage < $1`,
-        [mileage, service_item_id]
+         WHERE id = $2 AND mileage < $1`,
+        [mileage, car_id]
       );
 
-      res.status(201).json(result.rows[0]);
+      await client.query('COMMIT');
+
+      const fullEvent = await getEventWithItems(pool, event.id);
+      res.status(201).json(fullEvent);
     } catch (err) {
+      await client.query('ROLLBACK');
       console.error('Error creating service event:', err);
       res.status(500).json({ error: 'Failed to create service event' });
+    } finally {
+      client.release();
     }
   });
 
-  // Update a service event
+  // Update a service event and replace its items
   router.put('/:id', async (req, res) => {
+    const client = await pool.connect();
     try {
       const { id } = req.params;
-      const { date, mileage, performed_by, notes } = req.body;
-      const result = await pool.query(
-        'UPDATE service_events SET date = $1, mileage = $2, performed_by = $3, notes = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *',
-        [date, mileage, performed_by, notes, id]
+      const { date, mileage, performed_by, description, notes, items } = req.body;
+      await client.query('BEGIN');
+
+      const eventResult = await client.query(
+        `UPDATE service_events
+         SET date = $1, mileage = $2, performed_by = $3, description = $4, notes = $5, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $6 RETURNING *`,
+        [date, mileage, performed_by || null, description || null, notes || null, id]
       );
-      if (result.rows.length === 0) {
+      if (eventResult.rows.length === 0) {
+        await client.query('ROLLBACK');
         return res.status(404).json({ error: 'Service event not found' });
       }
-      res.json(result.rows[0]);
+
+      await client.query('DELETE FROM service_event_items WHERE event_id = $1', [id]);
+      for (const item of (items || [])) {
+        await client.query(
+          `INSERT INTO service_event_items (event_id, service_item_id, notes) VALUES ($1, $2, $3)`,
+          [id, item.service_item_id, item.notes || null]
+        );
+      }
+
+      await client.query('COMMIT');
+
+      const fullEvent = await getEventWithItems(pool, id);
+      res.json(fullEvent);
     } catch (err) {
+      await client.query('ROLLBACK');
       console.error('Error updating service event:', err);
       res.status(500).json({ error: 'Failed to update service event' });
+    } finally {
+      client.release();
     }
   });
 
-  // Delete a service event
+  // Delete a service event (CASCADE removes service_event_items)
   router.delete('/:id', async (req, res) => {
     try {
       const { id } = req.params;
@@ -92,3 +144,43 @@ module.exports = (pool) => {
 
   return router;
 };
+
+async function getEventWithItems(pool, eventId) {
+  const result = await pool.query(
+    `SELECT se.*, sei.id AS sei_id, sei.service_item_id, si.title AS service_item_title, sei.notes AS item_notes
+     FROM service_events se
+     JOIN service_event_items sei ON sei.event_id = se.id
+     JOIN service_items si ON si.id = sei.service_item_id
+     WHERE se.id = $1
+     ORDER BY sei.id`,
+    [eventId]
+  );
+  return groupEventRows(result.rows)[0];
+}
+
+function groupEventRows(rows) {
+  const map = new Map();
+  for (const row of rows) {
+    if (!map.has(row.id)) {
+      map.set(row.id, {
+        id: row.id,
+        car_id: row.car_id,
+        date: row.date,
+        mileage: row.mileage,
+        performed_by: row.performed_by,
+        description: row.description,
+        notes: row.notes,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        items: [],
+      });
+    }
+    map.get(row.id).items.push({
+      id: row.sei_id,
+      service_item_id: row.service_item_id,
+      service_item_title: row.service_item_title,
+      notes: row.item_notes,
+    });
+  }
+  return Array.from(map.values());
+}

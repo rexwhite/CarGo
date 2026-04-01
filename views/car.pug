@@ -72,31 +72,39 @@ block content
           .tab-pane.fade#history(role="tabpanel", aria-labelledby="history-tab")
             if serviceEvents.length === 0
               p No service history found for this car.
-            else
-              table.service-table
-                thead
-                  tr
-                    th Date
-                    th Service
-                    th Mileage
-                    th Performed By
-                    th Notes
-                tbody
-                  each event in serviceEvents
-                    tr.service-event-row(
-                      data-id=event.id
-                      data-service-item-id=event.service_item_id
-                      data-service-item-title=event.service_item_title
-                      data-date=new Date(event.date).toISOString().split('T')[0]
-                      data-mileage=event.mileage
-                      data-performed-by=event.performed_by || ''
-                      data-notes=event.notes || ''
-                    )
-                      td= new Date(event.date).toLocaleDateString()
-                      td= event.service_item_title
-                      td= event.mileage.toLocaleString() + ' mi'
-                      td(class=(event.performed_by) ? '' : 'text-center')= event.performed_by || 'N/A'
-                      td(class=(event.notes) ? '' : 'text-center')= event.notes || 'N/A'
+            table.service-table(style=serviceEvents.length === 0 ? 'display:none;' : '')
+              thead
+                tr
+                  th Date
+                  th Mileage
+                  th Performed By
+                  th Description
+                  th Notes
+              tbody
+                each event in serviceEvents
+                  tr.service-event-row(
+                    data-id=event.id
+                    data-date=new Date(event.date).toISOString().split('T')[0]
+                    data-mileage=event.mileage
+                    data-performed-by=event.performed_by || ''
+                    data-description=event.description || ''
+                    data-notes=event.notes || ''
+                    data-items=JSON.stringify(event.items)
+                  )
+                    td= new Date(event.date).toLocaleDateString()
+                    td= event.mileage.toLocaleString() + ' mi'
+                    td(class=(event.performed_by) ? '' : 'text-center')= event.performed_by || 'N/A'
+                    td(class=(event.description) ? '' : 'text-center')= event.description || ''
+                    td(class=(event.notes) ? '' : 'text-center')= event.notes || ''
+                  each item in event.items
+                    tr.service-event-item-row(data-event-id=event.id)
+                      td(colspan="5")
+                        span.event-item-bullet ▸
+                        | &nbsp;
+                        strong= item.service_item_title
+                        if item.notes
+                          | :
+                          = item.notes
 
           .tab-pane.fade#mileage(role="tabpanel", aria-labelledby="mileage-tab")
             .chart-container(style="position: relative; height:40vh; width:100%")
@@ -178,15 +186,6 @@ block content
         .modal-body
           form#serviceEventForm
             input#serviceEventId(type="hidden", name="id")
-            .mb-3
-              label.form-label(for="serviceEventServiceItem") Service Item
-              .input-group
-                select#serviceEventServiceItem.form-select(name="service_item_id", required)
-                  - for (const item of allServiceItems) {
-                    option(value=item.id)= item.title
-                  - }
-                button#addServiceItemBtn.btn.btn-outline-secondary(type="button", title="New service item")
-                  i.bi.bi-plus-square
             .row
               .col-md-6.mb-3
                 label.form-label(for="serviceEventDate") Date
@@ -198,23 +197,42 @@ block content
               label.form-label(for="serviceEventPerformedBy") Performed By
               input#serviceEventPerformedBy.form-control(type="text", name="performed_by")
             .mb-3
+              label.form-label(for="serviceEventDescription") Description
+              input#serviceEventDescription.form-control(type="text", name="description")
+            .mb-3
               label.form-label(for="serviceEventNotes") Notes
-              textarea#serviceEventNotes.form-control(name="notes", rows="3")
+              textarea#serviceEventNotes.form-control(name="notes", rows="2")
+            .mb-3
+              label.form-label Service Items
+              #eventItemsList
+              button#addEventItemBtn.btn.btn-outline-secondary.btn-sm.mt-2(type="button")
+                i.bi.bi-plus-square
+                |  Add Item
         .modal-footer
           button#deleteEventBtn.btn.btn-danger.me-auto(type="button", style="display:none;") Delete
           button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancel
-          button.btn.btn-primary(type="button") Save
+          button#eventSaveBtn.btn.btn-primary(type="button") Save
 
   script.
     const CAR_ID = !{car.id};
     const orNull = v => v === '' ? null : v;
     let allServiceEvents = !{JSON.stringify(serviceEvents)};
+    let allServiceItems = !{JSON.stringify(allServiceItems)};
     let carMileage = !{car.mileage};
 
     // ── Service Items ────────────────────────────────────────────────
 
     let currentItemRow = null;
     let itemCreatedFromEventModal = false;
+    let newItemTargetSelect = null;
+
+    document.getElementById('serviceItemModal').addEventListener('hidden.bs.modal', () => {
+      if (itemCreatedFromEventModal) {
+        itemCreatedFromEventModal = false;
+        newItemTargetSelect = null;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('serviceEventModal')).show();
+      }
+    });
 
     function populateItemRowFromData(row, item) {
       row.dataset.id = item.id;
@@ -225,18 +243,19 @@ block content
       row.dataset.specificMileage = item.specific_mileage || '';
       row.dataset.specificDate = item.specific_date ? new Date(item.specific_date).toISOString().split('T')[0] : '';
       const cells = row.querySelectorAll('td');
-      cells[0].textContent = item.title;
-      cells[1].textContent = item.description || 'N/A';
-      cells[2].textContent = item.mileage_interval ? Number(item.mileage_interval).toLocaleString() + ' mi' : 'N/A';
-      cells[3].textContent = item.month_interval ? item.month_interval + ' months' : 'N/A';
-      cells[4].textContent = item.specific_mileage ? Number(item.specific_mileage).toLocaleString() + ' mi' : 'N/A';
-      cells[5].textContent = item.specific_date ? new Date(item.specific_date).toLocaleDateString() : 'N/A';
+      // cells[0] is Projected Date — leave it as-is (set by server or left as N/A for new items)
+      cells[1].textContent = item.title;
+      cells[2].textContent = item.description || 'N/A';
+      cells[3].textContent = item.mileage_interval ? Number(item.mileage_interval).toLocaleString() + ' mi' : 'N/A';
+      cells[4].textContent = item.month_interval ? item.month_interval + ' months' : 'N/A';
+      cells[5].textContent = item.specific_mileage ? Number(item.specific_mileage).toLocaleString() + ' mi' : 'N/A';
+      cells[6].textContent = item.specific_date ? new Date(item.specific_date).toLocaleDateString() : 'N/A';
     }
 
     function makeItemRow(item) {
       const row = document.createElement('tr');
       row.className = 'service-item-row';
-      row.innerHTML = '<td></td><td></td><td></td><td></td><td></td><td></td>';
+      row.innerHTML = '<td class="text-center">N/A</td><td></td><td></td><td></td><td></td><td></td><td></td>';
       populateItemRowFromData(row, item);
       attachItemRowHandler(row);
       return row;
@@ -285,12 +304,6 @@ block content
       openItemModal('New Service Item', null);
     });
 
-    document.getElementById('addServiceItemBtn').addEventListener('click', () => {
-      itemCreatedFromEventModal = true;
-      bootstrap.Modal.getInstance(document.getElementById('serviceEventModal')).hide();
-      openItemModal('New Service Item', null);
-    });
-
     document.querySelector('#serviceItemModal .btn-primary').addEventListener('click', async () => {
       const id = document.getElementById('serviceItemId').value;
       const body = {
@@ -320,15 +333,22 @@ block content
           });
           if (!res.ok) throw new Error(await res.text());
           item = await res.json();
-          const tbody = document.querySelector('#scheduled .service-table tbody');
-          tbody.appendChild(makeItemRow(item));
+          allServiceItems.push(item);
+          // Add to scheduled service table
+          const scheduledTbody = document.querySelector('#scheduled .service-table tbody');
+          if (scheduledTbody) scheduledTbody.appendChild(makeItemRow(item));
+          // If triggered from event modal, update all event item selects
           if (itemCreatedFromEventModal) {
-            const select = document.getElementById('serviceEventServiceItem');
-            const opt = document.createElement('option');
-            opt.value = item.id;
-            opt.textContent = item.title;
-            select.appendChild(opt);
-            select.value = item.id;
+            document.querySelectorAll('#eventItemsList select').forEach(sel => {
+              const opt = document.createElement('option');
+              opt.value = item.id;
+              opt.textContent = item.title;
+              sel.appendChild(opt);
+            });
+            if (newItemTargetSelect) {
+              newItemTargetSelect.value = item.id;
+              newItemTargetSelect = null;
+            }
           }
         }
         const reopenEventModal = itemCreatedFromEventModal;
@@ -346,29 +366,111 @@ block content
 
     let currentEventRow = null;
 
-    function populateEventRowFromData(row, event, serviceItemTitle) {
+    const ADD_NEW_SENTINEL = '__add_new__';
+
+    function buildItemSelect(serviceItemId) {
+      const select = document.createElement('select');
+      select.className = 'form-select';
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = '';
+      placeholder.disabled = true;
+      select.appendChild(placeholder);
+      const addNewOpt = document.createElement('option');
+      addNewOpt.value = ADD_NEW_SENTINEL;
+      addNewOpt.textContent = '+ Add new service item';
+      select.appendChild(addNewOpt);
+      for (const si of allServiceItems) {
+        const opt = document.createElement('option');
+        opt.value = si.id;
+        opt.textContent = si.title;
+        select.appendChild(opt);
+      }
+      select.value = serviceItemId != null ? serviceItemId : '';
+      select.addEventListener('change', () => {
+        if (select.value === ADD_NEW_SENTINEL) {
+          select.selectedIndex = 0;
+          newItemTargetSelect = select;
+          itemCreatedFromEventModal = true;
+          bootstrap.Modal.getInstance(document.getElementById('serviceEventModal')).hide();
+          openItemModal('New Service Item', null);
+        }
+      });
+      return select;
+    }
+
+    function addEventItemRow(serviceItemId, notes) {
+      const row = document.createElement('div');
+      row.className = 'event-item-row d-flex gap-2 mb-2 align-items-center';
+
+      const select = buildItemSelect(serviceItemId);
+
+      const notesInput = document.createElement('input');
+      notesInput.type = 'text';
+      notesInput.className = 'form-control';
+      notesInput.placeholder = 'Notes for this item';
+      notesInput.value = notes || '';
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'btn btn-outline-danger flex-shrink-0';
+      removeBtn.textContent = '×';
+      removeBtn.addEventListener('click', () => {
+        const list = document.getElementById('eventItemsList');
+        if (list.children.length > 1) row.remove();
+      });
+
+      row.appendChild(select);
+      row.appendChild(notesInput);
+      row.appendChild(removeBtn);
+      document.getElementById('eventItemsList').appendChild(row);
+      return select;
+    }
+
+    function populateEventRowFromData(row, event) {
       row.dataset.id = event.id;
-      row.dataset.serviceItemId = event.service_item_id;
-      row.dataset.serviceItemTitle = serviceItemTitle;
       row.dataset.date = new Date(event.date).toISOString().split('T')[0];
       row.dataset.mileage = event.mileage;
       row.dataset.performedBy = event.performed_by || '';
+      row.dataset.description = event.description || '';
       row.dataset.notes = event.notes || '';
+      row.dataset.items = JSON.stringify(event.items);
       const cells = row.querySelectorAll('td');
       cells[0].textContent = new Date(event.date).toLocaleDateString();
-      cells[1].textContent = serviceItemTitle;
-      cells[2].textContent = Number(event.mileage).toLocaleString() + ' mi';
-      cells[3].textContent = event.performed_by || 'N/A';
-      cells[4].textContent = event.notes || 'N/A';
+      cells[1].textContent = Number(event.mileage).toLocaleString() + ' mi';
+      cells[2].textContent = event.performed_by || 'N/A';
+      cells[3].textContent = event.description || '';
+      cells[4].textContent = event.notes || '';
     }
 
-    function makeEventRow(event, serviceItemTitle) {
+    function makeEventRow(event) {
       const row = document.createElement('tr');
       row.className = 'service-event-row';
       row.innerHTML = '<td></td><td></td><td></td><td></td><td></td>';
-      populateEventRowFromData(row, event, serviceItemTitle);
+      populateEventRowFromData(row, event);
       attachEventRowHandler(row);
       return row;
+    }
+
+    function makeItemSubRow(item, eventId) {
+      const row = document.createElement('tr');
+      row.className = 'service-event-item-row';
+      row.dataset.eventId = eventId;
+      const td = document.createElement('td');
+      td.colSpan = 5;
+      td.innerHTML = '<span class="event-item-bullet">▸</span>&nbsp;<strong>' +
+        escapeHtml(item.service_item_title) + '</strong>' +
+        (item.notes ? ': ' + escapeHtml(item.notes) : '');
+      row.appendChild(td);
+      return row;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
     }
 
     function openEventModal(title, rowOrNull) {
@@ -377,17 +479,27 @@ block content
       document.getElementById('serviceEventForm').reset();
       document.getElementById('serviceEventId').value = '';
       document.getElementById('deleteEventBtn').style.display = rowOrNull ? '' : 'none';
+      document.getElementById('eventItemsList').innerHTML = '';
+
       if (!rowOrNull) {
         document.getElementById('serviceEventDate').value = new Date().toISOString().split('T')[0];
-      }
-      if (rowOrNull) {
+        addEventItemRow();
+      } else {
         const d = rowOrNull.dataset;
         document.getElementById('serviceEventId').value = d.id;
-        document.getElementById('serviceEventServiceItem').value = d.serviceItemId;
         document.getElementById('serviceEventDate').value = d.date;
         document.getElementById('serviceEventMileage').value = d.mileage;
         document.getElementById('serviceEventPerformedBy').value = d.performedBy;
+        document.getElementById('serviceEventDescription').value = d.description;
         document.getElementById('serviceEventNotes').value = d.notes;
+        const items = JSON.parse(d.items || '[]');
+        if (items.length === 0) {
+          addEventItemRow();
+        } else {
+          for (const item of items) {
+            addEventItemRow(item.service_item_id, item.notes || '');
+          }
+        }
       }
       bootstrap.Modal.getOrCreateInstance(document.getElementById('serviceEventModal')).show();
     }
@@ -405,11 +517,9 @@ block content
         const res = await fetch(`/api/service-events/${id}`, { method: 'DELETE' });
         if (!res.ok) throw new Error(await res.text());
         currentEventRow.remove();
-
-        // Update local events array
+        document.querySelectorAll(`.service-event-item-row[data-event-id="${id}"]`).forEach(r => r.remove());
         allServiceEvents = allServiceEvents.filter(e => e.id != id);
         updateMileageChart();
-
         bootstrap.Modal.getInstance(document.getElementById('serviceEventModal')).hide();
       } catch (err) {
         alert('Failed to delete: ' + err.message);
@@ -421,16 +531,25 @@ block content
       openEventModal('New Service Event', null);
     });
 
-    document.querySelector('#serviceEventModal .btn-primary').addEventListener('click', async () => {
+    document.getElementById('addEventItemBtn').addEventListener('click', () => {
+      addEventItemRow();
+    });
+
+    document.getElementById('eventSaveBtn').addEventListener('click', async () => {
       const id = document.getElementById('serviceEventId').value;
-      const serviceItemId = document.getElementById('serviceEventServiceItem').value;
-      const serviceItemTitle = document.getElementById('serviceEventServiceItem').selectedOptions[0].text;
+      const itemRows = document.querySelectorAll('#eventItemsList .event-item-row');
+      const items = Array.from(itemRows).map(row => ({
+        service_item_id: parseInt(row.querySelector('select').value),
+        notes: orNull(row.querySelector('input[type="text"]').value),
+      }));
       const body = {
-        service_item_id: serviceItemId,
+        car_id: CAR_ID,
         date: document.getElementById('serviceEventDate').value,
-        mileage: document.getElementById('serviceEventMileage').value,
+        mileage: parseInt(document.getElementById('serviceEventMileage').value),
         performed_by: orNull(document.getElementById('serviceEventPerformedBy').value),
+        description: orNull(document.getElementById('serviceEventDescription').value),
         notes: orNull(document.getElementById('serviceEventNotes').value),
+        items,
       };
       try {
         let event;
@@ -442,9 +561,14 @@ block content
           });
           if (!res.ok) throw new Error(await res.text());
           event = await res.json();
-          populateEventRowFromData(currentEventRow, event, serviceItemTitle);
-
-          // Update local events array
+          populateEventRowFromData(currentEventRow, event);
+          document.querySelectorAll(`.service-event-item-row[data-event-id="${event.id}"]`).forEach(r => r.remove());
+          let anchor = currentEventRow;
+          for (const item of event.items) {
+            const itemRow = makeItemSubRow(item, event.id);
+            anchor.insertAdjacentElement('afterend', itemRow);
+            anchor = itemRow;
+          }
           const idx = allServiceEvents.findIndex(e => e.id === event.id);
           if (idx !== -1) allServiceEvents[idx] = event;
         } else {
@@ -455,22 +579,28 @@ block content
           });
           if (!res.ok) throw new Error(await res.text());
           event = await res.json();
+          // Show history table if it was hidden (no prior events)
+          const historyTable = document.querySelector('#history .service-table');
+          const emptyMsg = document.querySelector('#history p');
+          if (historyTable) historyTable.style.display = '';
+          if (emptyMsg) emptyMsg.style.display = 'none';
           const tbody = document.querySelector('#history .service-table tbody');
-          tbody.appendChild(makeEventRow(event, serviceItemTitle));
-
-          // Add to local events array
-          allServiceEvents.push(event);
+          const eventRow = makeEventRow(event);
+          tbody.prepend(eventRow);
+          let anchor = eventRow;
+          for (const item of event.items) {
+            const itemRow = makeItemSubRow(item, event.id);
+            anchor.insertAdjacentElement('afterend', itemRow);
+            anchor = itemRow;
+          }
+          allServiceEvents.unshift(event);
         }
-
-        // Update mileage if this event has higher mileage
         if (event.mileage > carMileage) {
           carMileage = event.mileage;
           const mileageDd = document.querySelectorAll('.car-details-info dd')[3];
           if (mileageDd) mileageDd.textContent = Number(carMileage).toLocaleString() + ' mi';
         }
-
         updateMileageChart();
-
         bootstrap.Modal.getInstance(document.getElementById('serviceEventModal')).hide();
       } catch (err) {
         alert('Failed to save: ' + err.message);
@@ -483,19 +613,14 @@ block content
     function updateMileageChart() {
       if (!mileageChart) return;
 
-      // Extract unique (date, mileage) pairs from events
       const dataPoints = allServiceEvents.map(e => ({
         x: new Date(e.date).toISOString().split('T')[0],
         y: e.mileage
       }));
-
-      // Add current car mileage as of today
       dataPoints.push({
         x: new Date().toISOString().split('T')[0],
         y: carMileage
       });
-
-      // Sort by date and remove duplicates (keep max mileage for same date)
       const sortedPoints = dataPoints.sort((a, b) => a.x.localeCompare(b.x));
       const filteredPoints = [];
       for (const p of sortedPoints) {
@@ -505,7 +630,6 @@ block content
           filteredPoints.push(p);
         }
       }
-
       mileageChart.data.datasets[0].data = filteredPoints;
       mileageChart.update();
     }
@@ -516,8 +640,6 @@ block content
         if (mileageChart) return;
 
         const ctx = document.getElementById('mileageChart').getContext('2d');
-
-        // Initial data calculation
         const dataPoints = allServiceEvents.map(e => ({
           x: new Date(e.date).toISOString().split('T')[0],
           y: e.mileage
@@ -570,7 +692,7 @@ block content
                 },
                 grid: {
                   color: 'rgba(255, 255, 255, 0.1)'
-              }
+                }
               },
               y: {
                 title: {

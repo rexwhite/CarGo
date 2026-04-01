@@ -15,45 +15,72 @@ module.exports = (pool) => {
       }
       const car = carResult.rows[0];
 
-      // Fetch all service items (used for dropdowns and event history)
+      // Fetch all service items for dropdowns and scheduled service table
       const allServiceItemsResult = await pool.query(
         'SELECT * FROM service_items WHERE car_id = $1 ORDER BY title',
         [carId]
       );
       const allServiceItems = allServiceItemsResult.rows;
-
-      // Scheduled service table: include all service items
       const serviceItems = allServiceItems;
 
-      // Fetch service events for all service items
-      const serviceEvents = [];
-      for (const item of allServiceItems) {
-        const eventsResult = await pool.query(
-          'SELECT * FROM service_events WHERE service_item_id = $1 ORDER BY date DESC',
-          [item.id]
-        );
-        eventsResult.rows.forEach(event => {
-          serviceEvents.push({
-            ...event,
-            service_item_title: item.title
+      // Fetch all service events with their items, ordered newest first
+      const eventsResult = await pool.query(
+        `SELECT se.*, sei.id AS sei_id, sei.service_item_id, si.title AS service_item_title, sei.notes AS item_notes
+         FROM service_events se
+         JOIN service_event_items sei ON sei.event_id = se.id
+         JOIN service_items si ON si.id = sei.service_item_id
+         WHERE se.car_id = $1
+         ORDER BY se.date DESC, se.id DESC, sei.id`,
+        [carId]
+      );
+
+      // Group rows into event objects with items arrays
+      const eventMap = new Map();
+      for (const row of eventsResult.rows) {
+        if (!eventMap.has(row.id)) {
+          eventMap.set(row.id, {
+            id: row.id,
+            car_id: row.car_id,
+            date: row.date,
+            mileage: row.mileage,
+            performed_by: row.performed_by,
+            description: row.description,
+            notes: row.notes,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            items: [],
           });
+        }
+        eventMap.get(row.id).items.push({
+          id: row.sei_id,
+          service_item_id: row.service_item_id,
+          service_item_title: row.service_item_title,
+          notes: row.item_notes,
         });
       }
+      const serviceEvents = Array.from(eventMap.values());
 
-      // Sort all events by date descending
-      serviceEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-      // Calculate average miles per day and projected dates
+      // Calculate average miles per day using event-level date/mileage
       const avgMilesPerDay = computeAvgMilesPerDay(serviceEvents, car.mileage);
 
+      // For each service item, find the most recent event that includes it
       for (const item of serviceItems) {
-        const lastEvent = serviceEvents
-          .filter(e => e.service_item_id === item.id)
-          .sort((a, b) => new Date(b.date) - new Date(a.date))[0] || null;
+        let lastEvent = null;
+        let lastDate = null;
+        for (const event of serviceEvents) {
+          const hasItem = event.items.some(i => i.service_item_id === item.id);
+          if (hasItem) {
+            const eventDate = new Date(event.date);
+            if (!lastDate || eventDate > lastDate) {
+              lastDate = eventDate;
+              lastEvent = { date: event.date, mileage: event.mileage };
+            }
+          }
+        }
         item.projected_date = calculateProjectedDate(item, lastEvent, car, avgMilesPerDay);
       }
 
-      // Tag each item with a urgency status based on projected date
+      // Tag each item with urgency status based on projected date
       const now = new Date();
       const in30Days = new Date(now.getTime() + 30 * 86400000);
       const inOneYear = new Date(now.getTime() + 365 * 86400000);
