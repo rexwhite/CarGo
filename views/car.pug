@@ -73,12 +73,18 @@ block content
             if serviceEvents.length === 0
               p No service history found for this car.
             table.service-table(style=serviceEvents.length === 0 ? 'display:none;' : '')
+              colgroup
+                col(style="width:16%")
+                col(style="width:16%")
+                col(style="width:20%")
+                col(style="width:16%")
+                col(style="width:32%")
               thead
                 tr
                   th Date
                   th Mileage
-                  th Performed By
                   th Description
+                  th Performed By
                   th Notes
               tbody
                 each event in serviceEvents
@@ -93,8 +99,8 @@ block content
                   )
                     td= new Date(event.date).toLocaleDateString()
                     td= event.mileage.toLocaleString() + ' mi'
-                    td(class=(event.performed_by) ? '' : 'text-center')= event.performed_by || 'N/A'
                     td(class=(event.description) ? '' : 'text-center')= event.description || ''
+                    td(class=(event.performed_by) ? '' : 'text-center')= event.performed_by || 'N/A'
                     td(class=(event.notes) ? '' : 'text-center')= event.notes || ''
                   each item in event.items
                     tr.service-event-item-row(data-event-id=event.id)
@@ -103,7 +109,7 @@ block content
                         | &nbsp;
                         strong= item.service_item_title
                         if item.notes
-                          | :
+                          | : 
                           = item.notes
 
           .tab-pane.fade#mileage(role="tabpanel", aria-labelledby="mileage-tab")
@@ -438,8 +444,8 @@ block content
       const cells = row.querySelectorAll('td');
       cells[0].textContent = new Date(event.date).toLocaleDateString();
       cells[1].textContent = Number(event.mileage).toLocaleString() + ' mi';
-      cells[2].textContent = event.performed_by || 'N/A';
-      cells[3].textContent = event.description || '';
+      cells[2].textContent = event.description || '';
+      cells[3].textContent = event.performed_by || 'N/A';
       cells[4].textContent = event.notes || '';
     }
 
