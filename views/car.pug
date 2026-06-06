@@ -112,8 +112,7 @@ block content
                         | &nbsp;
                         strong= item.service_item_title
                         if item.notes
-                          | :
-                          = item.notes
+                          = ': ' + item.notes
 
           .tab-pane.fade#mileage(role="tabpanel", aria-labelledby="mileage-tab")
             .chart-container(style="position: relative; height:40vh; width:100%")
