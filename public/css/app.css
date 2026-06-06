@@ -315,3 +315,103 @@ body {
   color: #555;
   border-bottom: 1px solid #e8edf2;
 }
+
+/* Print Styles */
+@media print {
+  .d-print-none {
+    display: none !important;
+  }
+  
+  .d-print-block {
+    display: block !important;
+  }
+  
+  @page {
+    margin: 0;
+  }
+
+  body {
+    padding-top: 0 !important;
+    margin: 1.6cm !important;
+    background: white !important;
+    color: black !important;
+  }
+  
+  .App {
+    background: none !important;
+    min-height: auto !important;
+    color: black !important;
+  }
+
+  .car-details-card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin-bottom: 2rem !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .card {
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+  }
+
+  .card-header {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .bg-primary {
+    background-color: #0d6efd !important; /* Bootstrap primary */
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .bg-light {
+    background-color: #f8f9fa !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .text-primary {
+    color: #0d6efd !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .service-event-container {
+    break-after: page;
+    page-break-after: always;
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    padding-top: 1rem;
+  }
+
+  .service-event-container:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .service-table {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+
+  .service-table thead tr {
+    background-color: #282c34 !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .service-table th, .service-table td {
+    border: 1px solid #ddd !important;
+  }
+
+  .nav, .navbar, .modal, .btn, .expand-toggle, .scheduled-tab-icon, .history-tab-icon {
+    display: none !important;
+  }
+}

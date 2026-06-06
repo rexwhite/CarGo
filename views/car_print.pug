@@ -1,0 +1,53 @@
+extends layout
+
+block content
+  .container.mt-5.pt-4
+
+    if serviceEvents.length === 0
+      p No service history found for this car.
+    else
+      each event in serviceEvents
+        .service-event-container
+          .card.mb-4
+            .card-header.bg-primary.text-white.d-flex.justify-content-between.align-items-center
+              span.fs-5= new Date(event.date).toLocaleDateString()
+              h4.mb-0.text-center.flex-grow-1
+                strong= car.name
+                small.ms-2 (#{car.year} #{car.make} #{car.model})
+              span.badge.bg-light.text-primary.fs-5 #{event.mileage.toLocaleString()} mi
+            .card-body
+              .row.mb-3
+                .col-md-6
+                  strong Description:
+                  p= event.description || 'N/A'
+                .col-md-6
+                  strong Performed By:
+                  p= event.performed_by || 'N/A'
+              
+              if event.notes
+                .row.mb-3
+                  .col-12
+                    strong Notes:
+                    p= event.notes
+
+              if event.items && event.items.length > 0
+                h5.mt-4 Service Items:
+                .table-responsive
+                  table.table.table-striped.service-table
+                    thead
+                      tr
+                        th Item
+                        th Notes
+                    tbody
+                      each item in event.items
+                        tr
+                          td= item.service_item_title
+                          td= item.notes || ''
+
+  script.
+    window.onload = () => {
+      // Small delay to ensure everything is rendered before print dialog
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    }

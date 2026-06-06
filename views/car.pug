@@ -4,7 +4,11 @@ block content
   .App.App--top
     main(style="padding: 40px 20px 20px;")
       .car-details-card
-        h2= car.name
+        h2.text-center.position-relative
+          span#car-name-display= car.name
+          .d-print-none.position-absolute.top-0.end-0
+            a.btn.btn-outline-secondary.btn-sm(href=`/car/${car.id}/print` target="_blank")
+              i.bi.bi-printer
         dl.car-details-info
           div
             dt Make
@@ -77,13 +81,15 @@ block content
               p No service history found for this car.
             table.service-table(style=serviceEvents.length === 0 ? 'display:none;' : '')
               colgroup
+                col(style="width:4%")
                 col(style="width:16%")
                 col(style="width:16%")
                 col(style="width:20%")
-                col(style="width:16%")
+                col(style="width:12%")
                 col(style="width:32%")
               thead
                 tr
+                  th
                   th Date
                   th Mileage
                   th Description
@@ -100,6 +106,9 @@ block content
                     data-notes=event.notes || ''
                     data-items=JSON.stringify(event.items)
                   )
+                    td.text-center
+                      a(href=`/car/${car.id}/events/${event.id}` title="View Details")
+                        i.bi.bi-eye
                     td= new Date(event.date).toLocaleDateString()
                     td= event.mileage.toLocaleString() + ' mi'
                     td(class=(event.description) ? '' : 'text-center')= event.description || ''
@@ -107,7 +116,7 @@ block content
                     td(class=(event.notes) ? '' : 'text-center')= event.notes || ''
                   each item in event.items
                     tr.service-event-item-row(data-event-id=event.id)
-                      td(colspan="5")
+                      td(colspan="6")
                         span.event-item-bullet ▸
                         | &nbsp;
                         strong= item.service_item_title
@@ -511,20 +520,21 @@ block content
       row.dataset.notes = event.notes || '';
       row.dataset.items = JSON.stringify(event.items);
       const cells = row.querySelectorAll('td');
-      cells[0].textContent = new Date(event.date).toLocaleDateString();
-      cells[1].textContent = Number(event.mileage).toLocaleString() + ' mi';
-      cells[2].className = event.description ? '' : 'text-center';
-      cells[2].textContent = event.description || '';
-      cells[3].className = event.performed_by ? '' : 'text-center';
-      cells[3].textContent = event.performed_by || 'N/A';
-      cells[4].className = event.notes ? '' : 'text-center';
-      cells[4].textContent = event.notes || '';
+      // cells[0] is eye icon — leave it
+      cells[1].textContent = new Date(event.date).toLocaleDateString();
+      cells[2].textContent = Number(event.mileage).toLocaleString() + ' mi';
+      cells[3].className = event.description ? '' : 'text-center';
+      cells[3].textContent = event.description || '';
+      cells[4].className = event.performed_by ? '' : 'text-center';
+      cells[4].textContent = event.performed_by || 'N/A';
+      cells[5].className = event.notes ? '' : 'text-center';
+      cells[5].textContent = event.notes || '';
     }
 
     function makeEventRow(event) {
       const row = document.createElement('tr');
       row.className = 'service-event-row';
-      row.innerHTML = '<td></td><td></td><td></td><td></td><td></td>';
+      row.innerHTML = '<td class="text-center"><a href="/car/' + CAR_ID + '/events/' + event.id + '" title="View Details"><i class="bi bi-eye"></i></a></td><td></td><td></td><td></td><td></td><td></td>';
       populateEventRowFromData(row, event);
       attachEventRowHandler(row);
       return row;
@@ -535,7 +545,7 @@ block content
       row.className = 'service-event-item-row';
       row.dataset.eventId = eventId;
       const td = document.createElement('td');
-      td.colSpan = 5;
+      td.colSpan = 6;
       td.innerHTML = '<span class="event-item-bullet">▸</span>&nbsp;<strong>' +
         escapeHtml(item.service_item_title) + '</strong>' +
         (item.notes ? ': ' + escapeHtml(item.notes) : '');
@@ -840,7 +850,7 @@ block content
         const car = await res.json();
         carMileage = car.mileage;
         updateMileageChart();
-        document.querySelector('.car-details-card h2').textContent = car.name;
+        document.getElementById('car-name-display').textContent = car.name;
         const dds = document.querySelectorAll('.car-details-info dd');
         dds[0].textContent = car.make;
         dds[1].textContent = car.year;

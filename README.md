@@ -8,7 +8,7 @@ Automotive Maintenance Tracker
 - [x] Compound service events/items: group related service items into a single event
 - [x] Expandable scheduled service rows: click to expand a row and see dates and mileage of past service events for that item
 - [ ] Receipt upload: attach photos/PDFs of receipts to service events
-- [ ] Service event PDF generation/download: export service history as a PDF report
+- [x] Service event PDF generation/download: export service history as a PDF report
 - [ ] Car icon support: associate a custom icon or photo with each vehicle
 - [ ] Condensed car details: click to open a modal with more details
 
@@ -46,9 +46,10 @@ podman-compose up -d
 ```
 
 This starts PostgreSQL on port 5432 with the following credentials:
-- Database: `cargo_db`
 - User: `cargo_user`
 - Password: `cargo_password`
+
+The application database will be created during the initialization step.
 
 ### 2. Install Dependencies
 
@@ -58,15 +59,16 @@ npm install
 
 ### 3. Initialize Database
 
-Run the database initialization and seeding:
+Run the database migrations and seeding:
 
 ```bash
-node db/init.js
+npm run db:migrate
 ```
 
 This will:
-- Drop and recreate tables: `cars`, `service_items`, `service_events`
-- Seed sample data for 3 cars with service items and history
+- Create the database if it doesn't exist (`cargo_db_dev` by default in development)
+- Apply schema migrations to create tables: `cars`, `service_items`, `service_events`
+- Seed sample data for vehicles and service history (in development and test environments)
 
 ### 4. Start the Server
 
@@ -107,11 +109,11 @@ npm run test:watch
 - `DELETE /api/service-items/:id` - Delete a service item
 
 ### Service Events
-- `GET /api/service-events/service-item/:serviceItemId` - Get all events for a service item
+- `GET /api/service-events/car/:carId` - Get all service events for a car
 - `GET /api/service-events/:id` - Get a single service event
-- `POST /api/service-events` - Create a new service event
-- `PUT /api/service-events/:id` - Update a service event
-- `DELETE /api/service-events/:id` - Delete a service event
+- `POST /api/service-events` - Create a new service event (with items)
+- `PUT /api/service-events/:id` - Update a service event and its items
+- `DELETE /api/service-events/:id` - Delete a service event (and its items)
 
 ### Other
 - `GET /api/hello` - Health check endpoint
@@ -120,42 +122,56 @@ npm run test:watch
 
 ### Cars Table
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | SERIAL | Primary key |
-| name | VARCHAR(255) | Car nickname |
-| make | VARCHAR(100) | Manufacturer |
-| model | VARCHAR(100) | Model name |
-| year | INTEGER | Year of manufacture |
-| mileage | INTEGER | Current mileage |
-| created_at | TIMESTAMP | Record creation time |
-| updated_at | TIMESTAMP | Last update time |
+| Column     | Type         | Description          |
+|------------|--------------|----------------------|
+| id         | SERIAL       | Primary key          |
+| name       | VARCHAR(255) | Car nickname         |
+| make       | VARCHAR(100) | Manufacturer         |
+| model      | VARCHAR(100) | Model name           |
+| year       | INTEGER      | Year of manufacture  |
+| mileage    | INTEGER      | Current mileage      |
+| created_at | TIMESTAMP    | Record creation time |
+| updated_at | TIMESTAMP    | Last update time     |
 
 ### Service Items Table
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | SERIAL | Primary key |
-| car_id | INTEGER | Foreign key to cars |
-| title | VARCHAR(255) | Service item name |
-| description | TEXT | Detailed description |
-| mileage_interval | INTEGER | Miles between service |
-| month_interval | INTEGER | Months between service |
-| created_at | TIMESTAMP | Record creation time |
-| updated_at | TIMESTAMP | Last update time |
+| Column           | Type         | Description            |
+|------------------|--------------|------------------------|
+| id               | SERIAL       | Primary key            |
+| car_id           | INTEGER      | Foreign key to cars    |
+| title            | VARCHAR(255) | Service item name      |
+| description      | TEXT         | Detailed description   |
+| mileage_interval | INTEGER      | Miles between service  |
+| month_interval   | INTEGER      | Months between service |
+| specific_mileage | INTEGER      | One-time service miles |
+| specific_date    | DATE         | One-time service date  |
+| created_at       | TIMESTAMP    | Record creation time   |
+| updated_at       | TIMESTAMP    | Last update time       |
 
 ### Service Events Table
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | SERIAL | Primary key |
-| service_item_id | INTEGER | Foreign key to service_items |
-| date | DATE | Date service was performed |
-| mileage | INTEGER | Odometer reading |
-| performed_by | VARCHAR(255) | Who performed the service |
-| notes | TEXT | Additional notes |
-| created_at | TIMESTAMP | Record creation time |
-| updated_at | TIMESTAMP | Last update time |
+| Column       | Type         | Description          |
+|--------------|--------------|----------------------|
+| id           | SERIAL       | Primary key          |
+| car_id       | INTEGER      | Foreign key to cars  |
+| date         | DATE         | Date of service      |
+| mileage      | INTEGER      | Odometer reading     |
+| performed_by | VARCHAR(255) | Service provider     |
+| description  | TEXT         | Event description    |
+| notes        | TEXT         | Internal notes       |
+| created_at   | TIMESTAMP    | Record creation time |
+| updated_at   | TIMESTAMP    | Last update time     |
+
+### Service Event Items Table
+
+| Column          | Type      | Description                  |
+|-----------------|-----------|------------------------------|
+| id              | SERIAL    | Primary key                  |
+| event_id        | INTEGER   | Foreign key to service_events|
+| service_item_id | INTEGER   | Foreign key to service_items |
+| notes           | TEXT      | Item-specific notes          |
+| created_at      | TIMESTAMP | Record creation time         |
+| updated_at      | TIMESTAMP | Last update time             |
 
 ## Features
 
@@ -173,8 +189,8 @@ npm run test:watch
 ### Service History
 - Record service events with dates and mileage
 - Add notes and track who performed the service
-- View complete service history chronologically
-- Link service events to specific service items
+- View the complete service history chronologically
+- Link service events to multiple service items (compound events)
 
 ### User Interface
 - Responsive Bootstrap-based design
@@ -205,7 +221,8 @@ CarGo/
 │   ├── migrate.js           # Migration runner
 │   ├── migrate-down.js      # Roll back one migration
 │   ├── migration-create.js  # Generate migration file
-│   └── migrations/          # Migration files
+│   ├── migrations/          # Migration files
+│   └── seeds/               # Seed data files
 ├── views/
 │   ├── layout.pug           # Base template
 │   ├── index.pug            # Car list page
@@ -228,7 +245,7 @@ The backend supports the following environment variables:
 - `PORT` - Server port (default: 8000)
 - `DB_USER` - Database user (default: cargo_user)
 - `DB_HOST` - Database host (default: localhost)
-- `DB_NAME` - Database name (default: cargo_db)
+- `DB_NAME` - Database name (default: `cargo_db_dev` in development, `cargo_db` in production)
 - `DB_PASSWORD` - Database password (default: cargo_password)
 - `DB_PORT` - Database port (default: 5432)
 
