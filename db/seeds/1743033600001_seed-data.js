@@ -26,23 +26,39 @@ exports.up = (pgm) => {
       (3, 'Fuel Filter', 'Replace fuel filter', 20000, 24),
       (3, 'Brake Fluid', 'Flush and replace brake fluid', 30000, 36);
 
-    INSERT INTO service_events (service_item_id, date, mileage, performed_by, notes) VALUES
-      (1, '2024-01-15', 40000, 'Quick Lube', 'Used synthetic blend oil'),
-      (1, '2024-06-20', 45000, 'Quick Lube', 'Replaced oil filter'),
-      (2, '2024-03-10', 42000, 'Tire Shop', 'Rotated all four tires'),
-      (4, '2024-02-05', 41000, 'Brake Masters', 'Brake pads at 50% life'),
-      (4, '2025-04-15', 45100, 'Brake Masters', 'Brake pads at 30% life'),
-      (3, '2026-01-15', 45200, 'DIY', 'Replaced engine air filter'),
-      (6, '2024-04-12', 10000, 'Honda Dealer', 'First oil change, complimentary'),
-      (7, '2024-04-12', 10000, 'Honda Dealer', 'Rotated during oil change'),
-      (7, '2025-10-01', 11000, 'Tire Shop', 'Rotated and balanced tires'),
-      (11, '2024-01-08', 85000, 'DIY', 'Changed oil in garage'),
-      (11, '2024-06-15', 89000, 'DIY', 'Used Mobil 1 synthetic'),
-      (12, '2024-03-20', 87000, 'DIY', 'Rotated tires, checked pressure'),
-      (13, '2024-05-01', 88000, 'AutoZone', 'Battery tested, cleaned terminals'),
-      (15, '2025-03-01', 89100, 'DIY', 'Replaced fuel filter'),
-      (14, '2025-06-01', 89200, 'Ford Dealer', 'Changed differential fluid'),
-      (16, '2025-09-01', 89300, 'DIY', 'Flushed and replaced brake fluid');
+    WITH
+      ev1  AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (1, '2024-01-15', 40000, 'Quick Lube')    RETURNING id),
+      ev2  AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (1, '2024-02-05', 41000, 'Brake Masters') RETURNING id),
+      ev3  AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (1, '2024-03-10', 42000, 'Tire Shop')     RETURNING id),
+      ev4  AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (1, '2024-06-20', 45000, 'Quick Lube')    RETURNING id),
+      ev5  AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (1, '2025-04-15', 45100, 'Brake Masters') RETURNING id),
+      ev6  AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (1, '2026-01-15', 45200, 'DIY')           RETURNING id),
+      ev7  AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (2, '2024-04-12', 10000, 'Honda Dealer')  RETURNING id),
+      ev8  AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (2, '2025-10-01', 11000, 'Tire Shop')     RETURNING id),
+      ev9  AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (3, '2024-01-08', 85000, 'DIY')           RETURNING id),
+      ev10 AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (3, '2024-03-20', 87000, 'DIY')           RETURNING id),
+      ev11 AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (3, '2024-05-01', 88000, 'AutoZone')      RETURNING id),
+      ev12 AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (3, '2024-06-15', 89000, 'DIY')           RETURNING id),
+      ev13 AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (3, '2025-03-01', 89100, 'DIY')           RETURNING id),
+      ev14 AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (3, '2025-06-01', 89200, 'Ford Dealer')   RETURNING id),
+      ev15 AS (INSERT INTO service_events (car_id, date, mileage, performed_by) VALUES (3, '2025-09-01', 89300, 'DIY')           RETURNING id)
+    INSERT INTO service_event_items (event_id, service_item_id, notes)
+      SELECT ev1.id,  1,  'Used synthetic blend oil'         FROM ev1
+      UNION ALL SELECT ev2.id,  4,  'Brake pads at 50% life'         FROM ev2
+      UNION ALL SELECT ev3.id,  2,  'Rotated all four tires'         FROM ev3
+      UNION ALL SELECT ev4.id,  1,  'Replaced oil filter'            FROM ev4
+      UNION ALL SELECT ev5.id,  4,  'Brake pads at 30% life'         FROM ev5
+      UNION ALL SELECT ev6.id,  3,  'Replaced engine air filter'     FROM ev6
+      UNION ALL SELECT ev7.id,  6,  'First oil change, complimentary' FROM ev7
+      UNION ALL SELECT ev7.id,  7,  'Rotated during oil change'      FROM ev7
+      UNION ALL SELECT ev8.id,  7,  'Rotated and balanced tires'     FROM ev8
+      UNION ALL SELECT ev9.id,  11, 'Changed oil in garage'          FROM ev9
+      UNION ALL SELECT ev10.id, 12, 'Rotated tires, checked pressure' FROM ev10
+      UNION ALL SELECT ev11.id, 13, 'Battery tested, cleaned terminals' FROM ev11
+      UNION ALL SELECT ev12.id, 11, 'Used Mobil 1 synthetic'         FROM ev12
+      UNION ALL SELECT ev13.id, 15, 'Replaced fuel filter'           FROM ev13
+      UNION ALL SELECT ev14.id, 14, 'Changed differential fluid'     FROM ev14
+      UNION ALL SELECT ev15.id, 16, 'Flushed and replaced brake fluid' FROM ev15;
   `);
 };
 
@@ -51,6 +67,7 @@ exports.up = (pgm) => {
  */
 exports.down = (pgm) => {
   pgm.sql(`
+    DELETE FROM service_event_items;
     DELETE FROM service_events;
     DELETE FROM service_items;
     DELETE FROM cars;
