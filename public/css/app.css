@@ -1,11 +1,16 @@
 body {
     margin: 0;
-    padding-top: 56px;
+    padding-top: 49px;
+}
+
+.navbar {
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
 }
 
 .App {
   text-align: center;
-  min-height: calc(100vh - 56px);
+  min-height: calc(100vh - 49px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -193,12 +198,12 @@ body {
 .service-table th {
   padding: 12px;
   text-align: center;
-  border: 1px solid #ddd;
+  border: 1px solid #bbb;
 }
 
 .service-table td {
   padding: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid #bbb;
   color: #333333;
   text-align: left;
 }
@@ -307,13 +312,13 @@ body {
   text-align: left;
   font-weight: 600;
   color: #555;
-  border-bottom: 1px solid #c8d5e0;
+  border-bottom: 1px solid #999;
 }
 
 .item-history-subtable td {
   padding: 5px 16px;
   color: #555;
-  border-bottom: 1px solid #e8edf2;
+  border-bottom: 1px solid #bbb;
 }
 
 /* Print Styles */
@@ -330,9 +335,14 @@ body {
     margin: 0;
   }
 
+  .container {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
   body {
     padding-top: 0 !important;
-    margin: 1.6cm !important;
+    margin: 0 1.6cm !important;
     background: white !important;
     color: black !important;
   }
@@ -345,7 +355,7 @@ body {
 
   .car-details-card {
     box-shadow: none !important;
-    border: 1px solid #ddd !important;
+    border: 1px solid #bbb !important;
     max-width: 100% !important;
     width: 100% !important;
     margin-bottom: 2rem !important;
@@ -354,7 +364,7 @@ body {
   }
 
   .card {
-    border: 1px solid #ddd !important;
+    border: 1px solid #bbb !important;
     box-shadow: none !important;
   }
 
@@ -387,7 +397,7 @@ body {
     page-break-after: always;
     margin-bottom: 2rem;
     padding-bottom: 2rem;
-    padding-top: 1rem;
+    padding-top: 4rem;
   }
 
   .service-event-container:last-child {
@@ -397,7 +407,7 @@ body {
 
   .service-table {
     box-shadow: none !important;
-    border: 1px solid #ddd !important;
+    border: 1px solid #bbb !important;
   }
 
   .service-table thead tr {
@@ -408,7 +418,7 @@ body {
   }
 
   .service-table th, .service-table td {
-    border: 1px solid #ddd !important;
+    border: 1px solid #bbb !important;
   }
 
   .nav, .navbar, .modal, .btn, .expand-toggle, .scheduled-tab-icon, .history-tab-icon {
