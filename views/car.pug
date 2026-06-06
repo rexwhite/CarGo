@@ -36,6 +36,7 @@ block content
               table.service-table
                 thead
                   tr
+                    th(style="width:2rem")
                     th Projected Date
                     th Title
                     th Description
@@ -54,6 +55,8 @@ block content
                       data-specific-mileage=item.specific_mileage || ''
                       data-specific-date=item.specific_date ? new Date(item.specific_date).toISOString().split('T')[0] : ''
                     )
+                      td.text-center
+                        button.expand-toggle(type="button") ▶
                       td.text-center
                         if item.projected_date
                           if new Date(item.projected_date) > new Date(new Date().getTime() + 365 * 86400000)
@@ -109,7 +112,7 @@ block content
                         | &nbsp;
                         strong= item.service_item_title
                         if item.notes
-                          | : 
+                          | :
                           = item.notes
 
           .tab-pane.fade#mileage(role="tabpanel", aria-labelledby="mileage-tab")
@@ -249,19 +252,20 @@ block content
       row.dataset.specificMileage = item.specific_mileage || '';
       row.dataset.specificDate = item.specific_date ? new Date(item.specific_date).toISOString().split('T')[0] : '';
       const cells = row.querySelectorAll('td');
-      // cells[0] is Projected Date — leave it as-is (set by server or left as N/A for new items)
-      cells[1].textContent = item.title;
-      cells[2].textContent = item.description || 'N/A';
-      cells[3].textContent = item.mileage_interval ? Number(item.mileage_interval).toLocaleString() + ' mi' : 'N/A';
-      cells[4].textContent = item.month_interval ? item.month_interval + ' months' : 'N/A';
-      cells[5].textContent = item.specific_mileage ? Number(item.specific_mileage).toLocaleString() + ' mi' : 'N/A';
-      cells[6].textContent = item.specific_date ? new Date(item.specific_date).toLocaleDateString() : 'N/A';
+      // cells[0] is expand toggle — skip
+      // cells[1] is Projected Date — leave it as-is (set by server or left as N/A for new items)
+      cells[2].textContent = item.title;
+      cells[3].textContent = item.description || 'N/A';
+      cells[4].textContent = item.mileage_interval ? Number(item.mileage_interval).toLocaleString() + ' mi' : 'N/A';
+      cells[5].textContent = item.month_interval ? item.month_interval + ' months' : 'N/A';
+      cells[6].textContent = item.specific_mileage ? Number(item.specific_mileage).toLocaleString() + ' mi' : 'N/A';
+      cells[7].textContent = item.specific_date ? new Date(item.specific_date).toLocaleDateString() : 'N/A';
     }
 
     function makeItemRow(item) {
       const row = document.createElement('tr');
       row.className = 'service-item-row';
-      row.innerHTML = '<td class="text-center">N/A</td><td></td><td></td><td></td><td></td><td></td><td></td>';
+      row.innerHTML = '<td class="text-center"><button class="expand-toggle" type="button">▶</button></td><td class="text-center">N/A</td><td></td><td></td><td></td><td></td><td></td><td></td>';
       populateItemRowFromData(row, item);
       attachItemRowHandler(row);
       return row;
@@ -288,6 +292,67 @@ block content
 
     function attachItemRowHandler(row) {
       row.addEventListener('dblclick', () => openItemModal('Edit Service Item', row));
+      attachExpandToggle(row);
+    }
+
+    function attachExpandToggle(row) {
+      const btn = row.querySelector('.expand-toggle');
+      if (!btn) return;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const itemId = parseInt(row.dataset.id);
+        const existing = document.querySelector(`.service-item-history-row[data-item-id="${itemId}"]`);
+        if (existing) {
+          document.querySelectorAll(`.service-item-history-row[data-item-id="${itemId}"]`).forEach(r => r.remove());
+          btn.textContent = '▶';
+          return;
+        }
+        btn.textContent = '▼';
+        const matchingEvents = allServiceEvents.filter(ev =>
+          ev.items.some(i => i.service_item_id === itemId)
+        );
+        row.insertAdjacentElement('afterend', makeItemHistoryRow(itemId, matchingEvents));
+      });
+    }
+
+    function collapseAllItemHistory() {
+      document.querySelectorAll('.service-item-history-row').forEach(r => r.remove());
+      document.querySelectorAll('#scheduled .expand-toggle').forEach(btn => { btn.textContent = '▶'; });
+    }
+
+    function makeItemHistoryRow(itemId, events) {
+      const tr = document.createElement('tr');
+      tr.className = 'service-item-history-row';
+      tr.dataset.itemId = String(itemId);
+      const td = document.createElement('td');
+      td.colSpan = 8;
+      if (events.length === 0) {
+        td.className = 'service-item-history-empty text-center';
+        td.textContent = 'No history recorded for this service item.';
+        tr.appendChild(td);
+        return tr;
+      }
+      const table = document.createElement('table');
+      table.className = 'item-history-subtable';
+      const thead = document.createElement('thead');
+      thead.innerHTML = '<tr><th>Date</th><th>Mileage</th><th>Performed By</th><th>Notes</th></tr>';
+      const tbody = document.createElement('tbody');
+      const sorted = [...events].sort((a, b) => new Date(b.date) - new Date(a.date));
+      for (const event of sorted) {
+        const itemEntry = event.items.find(i => i.service_item_id === itemId);
+        const eRow = document.createElement('tr');
+        eRow.innerHTML =
+          '<td>' + new Date(event.date).toLocaleDateString() + '</td>' +
+          '<td>' + Number(event.mileage).toLocaleString() + ' mi</td>' +
+          '<td>' + escapeHtml(event.performed_by || 'N/A') + '</td>' +
+          '<td>' + (itemEntry && itemEntry.notes ? escapeHtml(itemEntry.notes) : '') + '</td>';
+        tbody.appendChild(eRow);
+      }
+      table.appendChild(thead);
+      table.appendChild(tbody);
+      td.appendChild(table);
+      tr.appendChild(td);
+      return tr;
     }
 
     document.querySelectorAll('.service-item-row').forEach(attachItemRowHandler);
@@ -607,6 +672,7 @@ block content
           if (mileageDd) mileageDd.textContent = Number(carMileage).toLocaleString() + ' mi';
         }
         updateMileageChart();
+        collapseAllItemHistory();
         bootstrap.Modal.getInstance(document.getElementById('serviceEventModal')).hide();
       } catch (err) {
         alert('Failed to save: ' + err.message);
