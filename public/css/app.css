@@ -166,7 +166,7 @@ body {
   display: contents;
 }
 
-.car-details-info dd:nth-of-type(odd) {
+.car-details-info div:nth-of-type(odd) dd {
   padding-right: 2rem;
 }
 

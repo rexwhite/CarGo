@@ -10,7 +10,7 @@ Automotive Maintenance Tracker
 - [ ] Receipt upload: attach photos/PDFs of receipts to service events
 - [x] Service event PDF generation/download: export service history as a PDF report
 - [ ] Car icon support: associate a custom icon or photo with each vehicle
-- [ ] Condensed car details: click to open a modal with more details
+- [x] Condensed car details: click to open a modal with more details
 
 ## Overview
 

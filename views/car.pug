@@ -14,13 +14,13 @@ block content
           dl.car-details-info
             div
               dt Make
-              dd= car.make
+              dd#car-make-display= car.make
             div
               dt Year
-              dd= car.year
+              dd#car-year-display= car.year
             div
               dt Model
-              dd= car.model
+              dd#car-model-display= car.model
             div
               dt VIN
               dd#car-vin-display= car.vin || 'N/A'
@@ -248,6 +248,7 @@ block content
     let allServiceEvents = !{JSON.stringify(serviceEvents)};
     let allServiceItems = !{JSON.stringify(allServiceItems)};
     let carMileage = !{car.mileage};
+    let currentCar = !{JSON.stringify(car)};
 
     // ── Service Items ────────────────────────────────────────────────
 
@@ -844,14 +845,14 @@ block content
 
     // ── Car Details ──────────────────────────────────────────────────
 
-    document.querySelector('.car-details-card').addEventListener('dblclick', () => {
-      document.getElementById('carName').value = '!{car.name}';
-      document.getElementById('carMake').value = '!{car.make}';
-      document.getElementById('carModel').value = '!{car.model}';
-      document.getElementById('carYear').value = !{car.year};
-      document.getElementById('carMileage').value = !{car.mileage};
-      document.getElementById('carVIN').value = '!{car.vin || ''}';
-      document.getElementById('carLicensePlate').value = '!{car.license_plate || ''}';
+    document.getElementById('carDetailsCollapse').addEventListener('dblclick', () => {
+      document.getElementById('carName').value = currentCar.name;
+      document.getElementById('carMake').value = currentCar.make;
+      document.getElementById('carModel').value = currentCar.model;
+      document.getElementById('carYear').value = currentCar.year;
+      document.getElementById('carMileage').value = currentCar.mileage;
+      document.getElementById('carVIN').value = currentCar.vin || '';
+      document.getElementById('carLicensePlate').value = currentCar.license_plate || '';
       bootstrap.Modal.getOrCreateInstance(document.getElementById('carModal')).show();
     });
 
@@ -884,12 +885,13 @@ block content
         });
         if (!res.ok) throw new Error(await res.text());
         const car = await res.json();
+        currentCar = car;
         carMileage = car.mileage;
         updateMileageChart();
         document.getElementById('car-name-display').textContent = car.name;
-        document.querySelector('.car-details-info dd:nth-of-type(1)').textContent = car.make;
-        document.querySelector('.car-details-info dd:nth-of-type(2)').textContent = car.year;
-        document.querySelector('.car-details-info dd:nth-of-type(3)').textContent = car.model;
+        document.getElementById('car-make-display').textContent = car.make;
+        document.getElementById('car-year-display').textContent = car.year;
+        document.getElementById('car-model-display').textContent = car.model;
         document.getElementById('car-vin-display').textContent = car.vin || 'N/A';
         document.getElementById('car-license-display').textContent = car.license_plate || 'N/A';
         document.getElementById('car-mileage-display').textContent = Number(car.mileage).toLocaleString() + ' mi';
