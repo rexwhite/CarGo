@@ -15,7 +15,7 @@ module.exports = (pool) => {
       }
       const car = carResult.rows[0];
 
-      // Fetch all service items for dropdowns and scheduled service table
+      // Fetch all service items for dropdowns and service items table
       const allServiceItemsResult = await pool.query(
         'SELECT * FROM service_items WHERE car_id = $1 ORDER BY title',
         [carId]
@@ -98,7 +98,7 @@ module.exports = (pool) => {
         }
       }
 
-      // Sort scheduled items by projected date, nulls last
+      // Sort service items by projected date, nulls last
       serviceItems.sort((a, b) => {
         if (!a.projected_date && !b.projected_date) return 0;
         if (!a.projected_date) return 1;

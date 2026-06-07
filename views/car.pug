@@ -34,14 +34,14 @@ block content
     .service-section
         ul#serviceTabs.nav.nav-tabs.mb-3(role="tablist")
           li.nav-item(role="presentation")
-            button#scheduled-tab.nav-link.active(data-bs-toggle="tab", data-bs-target="#scheduled", type="button", role="tab", aria-controls="scheduled", aria-selected="true") Scheduled Service #[i.bi.bi-plus-square.scheduled-tab-icon]
+            button#service-items-tab.nav-link.active(data-bs-toggle="tab", data-bs-target="#service-items", type="button", role="tab", aria-controls="service-items", aria-selected="true") Service Items #[i.bi.bi-plus-square.service-items-tab-icon]
           li.nav-item(role="presentation")
             button#history-tab.nav-link(data-bs-toggle="tab", data-bs-target="#history", type="button", role="tab", aria-controls="history", aria-selected="false") Service History #[i.bi.bi-plus-square.history-tab-icon]
           li.nav-item(role="presentation")
             button#mileage-tab.nav-link(data-bs-toggle="tab", data-bs-target="#mileage", type="button", role="tab", aria-controls="mileage", aria-selected="false") Mileage
 
         .tab-content#serviceTabsContent
-          .tab-pane.fade.show.active#scheduled(role="tabpanel", aria-labelledby="scheduled-tab")
+          .tab-pane.fade.show.active#service-items(role="tabpanel", aria-labelledby="service-items-tab")
             if serviceItems.length === 0
               p No service items found for this car.
             else
@@ -343,7 +343,7 @@ block content
 
     function collapseAllItemHistory() {
       document.querySelectorAll('.service-item-history-row').forEach(r => r.remove());
-      document.querySelectorAll('#scheduled .expand-toggle').forEach(btn => { btn.textContent = '▶'; });
+      document.querySelectorAll('#service-items .expand-toggle').forEach(btn => { btn.textContent = '▶'; });
     }
 
     function makeItemHistoryRow(itemId, events) {
@@ -396,7 +396,7 @@ block content
       }
     });
 
-    document.querySelector('.scheduled-tab-icon').addEventListener('click', e => {
+    document.querySelector('.service-items-tab-icon').addEventListener('click', e => {
       e.stopPropagation();
       openItemModal('New Service Item', null);
     });
@@ -431,9 +431,9 @@ block content
           if (!res.ok) throw new Error(await res.text());
           item = await res.json();
           allServiceItems.push(item);
-          // Add to scheduled service table
-          const scheduledTbody = document.querySelector('#scheduled .service-table tbody');
-          if (scheduledTbody) scheduledTbody.appendChild(makeItemRow(item));
+          // Add to service items table
+          const serviceItemsTbody = document.querySelector('#service-items .service-table tbody');
+          if (serviceItemsTbody) serviceItemsTbody.appendChild(makeItemRow(item));
           // If triggered from event modal, update all event item selects
           if (itemCreatedFromEventModal) {
             document.querySelectorAll('#eventItemsList select').forEach(sel => {

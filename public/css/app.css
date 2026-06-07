@@ -198,13 +198,13 @@ body {
   justify-content: flex-start;
 }
 
-.scheduled-tab-icon,
+.service-items-tab-icon,
 .history-tab-icon {
   display: none;
   margin-left: 0.4rem;
 }
 
-#scheduled-tab.active .scheduled-tab-icon,
+#service-items-tab.active .service-items-tab-icon,
 #history-tab.active .history-tab-icon {
   display: inline;
 }
@@ -469,7 +469,7 @@ body {
     border: 1px solid #bbb !important;
   }
 
-  .nav, .navbar, .modal, .btn, .expand-toggle, .scheduled-tab-icon, .history-tab-icon {
+  .nav, .navbar, .modal, .btn, .expand-toggle, .service-items-tab-icon, .history-tab-icon {
     display: none !important;
   }
 }
