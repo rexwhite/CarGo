@@ -20,10 +20,16 @@ block content
             dt Model
             dd= car.model
           div
+            dt VIN
+            dd#car-vin-display= car.vin || 'N/A'
+          div
             dt Mileage
-            dd= car.mileage.toLocaleString() + ' mi'
+            dd#car-mileage-display= car.mileage.toLocaleString() + ' mi'
+          div
+            dt License
+            dd#car-license-display= car.license_plate || 'N/A'
 
-      .service-section
+    .service-section
         ul#serviceTabs.nav.nav-tabs.mb-3(role="tablist")
           li.nav-item(role="presentation")
             button#scheduled-tab.nav-link.active(data-bs-toggle="tab", data-bs-target="#scheduled", type="button", role="tab", aria-controls="scheduled", aria-selected="true") Scheduled Service #[i.bi.bi-plus-square.scheduled-tab-icon]
@@ -153,6 +159,13 @@ block content
               .col-md-6.mb-3
                 label.form-label(for="carMileage") Mileage
                 input#carMileage.form-control(type="number", name="mileage", min="0", required)
+            .row
+              .col-md-6.mb-3
+                label.form-label(for="carVIN") VIN
+                input#carVIN.form-control(type="text", name="vin", maxlength="17")
+              .col-md-6.mb-3
+                label.form-label(for="carLicensePlate") License Plate
+                input#carLicensePlate.form-control(type="text", name="license_plate", maxlength="20")
         .modal-footer
           button#deleteCarBtn.btn.btn-danger.me-auto(type="button") Delete
           button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancel
@@ -511,6 +524,41 @@ block content
       return select;
     }
 
+    function renderHistoryTable() {
+      const tbody = document.querySelector('#history .service-table tbody');
+      if (!tbody) return;
+
+      // Sort: Newest date first, then highest ID first (tie-breaker)
+      allServiceEvents.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        if (dateA > dateB) return -1;
+        if (dateA < dateB) return 1;
+        return b.id - a.id;
+      });
+
+      tbody.innerHTML = '';
+      const historyTable = document.querySelector('#history .service-table');
+      const emptyMsg = document.querySelector('#history p');
+
+      if (allServiceEvents.length === 0) {
+        if (historyTable) historyTable.style.display = 'none';
+        if (emptyMsg) emptyMsg.style.display = '';
+        return;
+      }
+
+      if (historyTable) historyTable.style.display = '';
+      if (emptyMsg) emptyMsg.style.display = 'none';
+
+      for (const event of allServiceEvents) {
+        const eventRow = makeEventRow(event);
+        tbody.appendChild(eventRow);
+        for (const item of event.items) {
+          tbody.appendChild(makeItemSubRow(item, event.id));
+        }
+      }
+    }
+
     function populateEventRowFromData(row, event) {
       row.dataset.id = event.id;
       row.dataset.date = new Date(event.date).toISOString().split('T')[0];
@@ -604,9 +652,8 @@ block content
       try {
         const res = await fetch(`/api/service-events/${id}`, { method: 'DELETE' });
         if (!res.ok) throw new Error(await res.text());
-        currentEventRow.remove();
-        document.querySelectorAll(`.service-event-item-row[data-event-id="${id}"]`).forEach(r => r.remove());
         allServiceEvents = allServiceEvents.filter(e => e.id != id);
+        renderHistoryTable();
         updateMileageChart();
         bootstrap.Modal.getInstance(document.getElementById('serviceEventModal')).hide();
       } catch (err) {
@@ -649,14 +696,6 @@ block content
           });
           if (!res.ok) throw new Error(await res.text());
           event = await res.json();
-          populateEventRowFromData(currentEventRow, event);
-          document.querySelectorAll(`.service-event-item-row[data-event-id="${event.id}"]`).forEach(r => r.remove());
-          let anchor = currentEventRow;
-          for (const item of event.items) {
-            const itemRow = makeItemSubRow(item, event.id);
-            anchor.insertAdjacentElement('afterend', itemRow);
-            anchor = itemRow;
-          }
           const idx = allServiceEvents.findIndex(e => e.id === event.id);
           if (idx !== -1) allServiceEvents[idx] = event;
         } else {
@@ -667,26 +706,13 @@ block content
           });
           if (!res.ok) throw new Error(await res.text());
           event = await res.json();
-          // Show history table if it was hidden (no prior events)
-          const historyTable = document.querySelector('#history .service-table');
-          const emptyMsg = document.querySelector('#history p');
-          if (historyTable) historyTable.style.display = '';
-          if (emptyMsg) emptyMsg.style.display = 'none';
-          const tbody = document.querySelector('#history .service-table tbody');
-          const eventRow = makeEventRow(event);
-          tbody.prepend(eventRow);
-          let anchor = eventRow;
-          for (const item of event.items) {
-            const itemRow = makeItemSubRow(item, event.id);
-            anchor.insertAdjacentElement('afterend', itemRow);
-            anchor = itemRow;
-          }
-          allServiceEvents.unshift(event);
+          allServiceEvents.push(event);
         }
+        renderHistoryTable();
         if (event.mileage > carMileage) {
           carMileage = event.mileage;
-          const mileageDd = document.querySelectorAll('.car-details-info dd')[3];
-          if (mileageDd) mileageDd.textContent = Number(carMileage).toLocaleString() + ' mi';
+          const mileageDisplay = document.getElementById('car-mileage-display');
+          if (mileageDisplay) mileageDisplay.textContent = Number(carMileage).toLocaleString() + ' mi';
         }
         updateMileageChart();
         collapseAllItemHistory();
@@ -818,6 +844,8 @@ block content
       document.getElementById('carModel').value = '!{car.model}';
       document.getElementById('carYear').value = !{car.year};
       document.getElementById('carMileage').value = !{car.mileage};
+      document.getElementById('carVIN').value = '!{car.vin || ''}';
+      document.getElementById('carLicensePlate').value = '!{car.license_plate || ''}';
       bootstrap.Modal.getOrCreateInstance(document.getElementById('carModal')).show();
     });
 
@@ -839,6 +867,8 @@ block content
         model: document.getElementById('carModel').value,
         year: document.getElementById('carYear').value,
         mileage: document.getElementById('carMileage').value,
+        vin: orNull(document.getElementById('carVIN').value),
+        license_plate: orNull(document.getElementById('carLicensePlate').value),
       };
       try {
         const res = await fetch(`/api/cars/${CAR_ID}`, {
@@ -851,11 +881,12 @@ block content
         carMileage = car.mileage;
         updateMileageChart();
         document.getElementById('car-name-display').textContent = car.name;
-        const dds = document.querySelectorAll('.car-details-info dd');
-        dds[0].textContent = car.make;
-        dds[1].textContent = car.year;
-        dds[2].textContent = car.model;
-        dds[3].textContent = Number(car.mileage).toLocaleString() + ' mi';
+        document.querySelector('.car-details-info dd:nth-of-type(1)').textContent = car.make;
+        document.querySelector('.car-details-info dd:nth-of-type(2)').textContent = car.year;
+        document.querySelector('.car-details-info dd:nth-of-type(3)').textContent = car.model;
+        document.getElementById('car-vin-display').textContent = car.vin || 'N/A';
+        document.getElementById('car-license-display').textContent = car.license_plate || 'N/A';
+        document.getElementById('car-mileage-display').textContent = Number(car.mileage).toLocaleString() + ' mi';
         bootstrap.Modal.getInstance(document.getElementById('carModal')).hide();
       } catch (err) {
         alert('Failed to save: ' + err.message);

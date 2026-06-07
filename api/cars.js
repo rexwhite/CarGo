@@ -31,10 +31,10 @@ module.exports = (pool) => {
   // Create a new car
   router.post('/', async (req, res) => {
     try {
-      const { name, make, model, year, mileage } = req.body;
+      const { name, make, model, year, mileage, vin, license_plate } = req.body;
       const result = await pool.query(
-        'INSERT INTO cars (name, make, model, year, mileage) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [name, make, model, year, mileage]
+        'INSERT INTO cars (name, make, model, year, mileage, vin, license_plate) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+        [name, make, model, year, mileage, vin, license_plate]
       );
       res.status(201).json(result.rows[0]);
     } catch (err) {
@@ -47,10 +47,10 @@ module.exports = (pool) => {
   router.put('/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, make, model, year, mileage } = req.body;
+      const { name, make, model, year, mileage, vin, license_plate } = req.body;
       const result = await pool.query(
-        'UPDATE cars SET name = $1, make = $2, model = $3, year = $4, mileage = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6 RETURNING *',
-        [name, make, model, year, mileage, id]
+        'UPDATE cars SET name = $1, make = $2, model = $3, year = $4, mileage = $5, vin = $6, license_plate = $7, updated_at = CURRENT_TIMESTAMP WHERE id = $8 RETURNING *',
+        [name, make, model, year, mileage, vin, license_plate, id]
       );
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Car not found' });

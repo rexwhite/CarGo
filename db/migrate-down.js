@@ -1,4 +1,4 @@
-const { migrate } = require('node-pg-migrate');
+const { runner: migrate } = require('node-pg-migrate');
 const { dbName, connectionConfig } = require('./migrate');
 const { env } = require('../config');
 

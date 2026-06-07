@@ -54,6 +54,13 @@ block content
               .col-md-6.mb-3
                 label.form-label(for="newCarMileage") Mileage
                 input#newCarMileage.form-control(type="number", name="mileage", min="0", required)
+            .row
+              .col-md-6.mb-3
+                label.form-label(for="newCarVIN") VIN
+                input#newCarVIN.form-control(type="text", name="vin", maxlength="17")
+              .col-md-6.mb-3
+                label.form-label(for="newCarLicensePlate") License Plate
+                input#newCarLicensePlate.form-control(type="text", name="license_plate", maxlength="20")
         .modal-footer
           button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancel
           button#newCarSaveBtn.btn.btn-primary(type="button") Save
@@ -66,12 +73,15 @@ block content
     });
 
     document.getElementById('newCarSaveBtn').addEventListener('click', async () => {
+      const orNull = v => v === '' ? null : v;
       const body = {
         name: document.getElementById('newCarName').value,
         make: document.getElementById('newCarMake').value,
         model: document.getElementById('newCarModel').value,
         year: document.getElementById('newCarYear').value,
         mileage: document.getElementById('newCarMileage').value,
+        vin: orNull(document.getElementById('newCarVIN').value),
+        license_plate: orNull(document.getElementById('newCarLicensePlate').value),
       };
       try {
         const res = await fetch('/api/cars', {

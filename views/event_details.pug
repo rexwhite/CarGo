@@ -19,6 +19,16 @@ block content
             small.ms-2 (#{car.year} #{car.make} #{car.model})
           span.badge.bg-light.text-primary.fs-5 #{event.mileage.toLocaleString()} mi
         .card-body
+          if car.vin || car.license_plate
+            .row.mb-3
+              if car.vin
+                .col-md-6
+                  strong VIN:
+                  p= car.vin
+              if car.license_plate
+                .col-md-6
+                  strong License Plate:
+                  p= car.license_plate
           .row.mb-3
             .col-md-6
               strong Description:

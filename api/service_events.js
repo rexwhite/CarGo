@@ -9,8 +9,8 @@ module.exports = (pool) => {
       const result = await pool.query(
         `SELECT se.*, sei.id AS sei_id, sei.service_item_id, si.title AS service_item_title, sei.notes AS item_notes
          FROM service_events se
-         JOIN service_event_items sei ON sei.event_id = se.id
-         JOIN service_items si ON si.id = sei.service_item_id
+         LEFT JOIN service_event_items sei ON sei.event_id = se.id
+         LEFT JOIN service_items si ON si.id = sei.service_item_id
          WHERE se.car_id = $1
          ORDER BY se.date DESC, se.id DESC, sei.id`,
         [carId]
@@ -30,8 +30,8 @@ module.exports = (pool) => {
       const result = await pool.query(
         `SELECT se.*, sei.id AS sei_id, sei.service_item_id, si.title AS service_item_title, sei.notes AS item_notes
          FROM service_events se
-         JOIN service_event_items sei ON sei.event_id = se.id
-         JOIN service_items si ON si.id = sei.service_item_id
+         LEFT JOIN service_event_items sei ON sei.event_id = se.id
+         LEFT JOIN service_items si ON si.id = sei.service_item_id
          WHERE se.id = $1
          ORDER BY sei.id`,
         [id]
@@ -149,8 +149,8 @@ async function getEventWithItems(pool, eventId) {
   const result = await pool.query(
     `SELECT se.*, sei.id AS sei_id, sei.service_item_id, si.title AS service_item_title, sei.notes AS item_notes
      FROM service_events se
-     JOIN service_event_items sei ON sei.event_id = se.id
-     JOIN service_items si ON si.id = sei.service_item_id
+     LEFT JOIN service_event_items sei ON sei.event_id = se.id
+     LEFT JOIN service_items si ON si.id = sei.service_item_id
      WHERE se.id = $1
      ORDER BY sei.id`,
     [eventId]
@@ -175,12 +175,14 @@ function groupEventRows(rows) {
         items: [],
       });
     }
-    map.get(row.id).items.push({
-      id: row.sei_id,
-      service_item_id: row.service_item_id,
-      service_item_title: row.service_item_title,
-      notes: row.item_notes,
-    });
+    if (row.sei_id) {
+      map.get(row.id).items.push({
+        id: row.sei_id,
+        service_item_id: row.service_item_id,
+        service_item_title: row.service_item_title,
+        notes: row.item_notes,
+      });
+    }
   }
   return Array.from(map.values());
 }

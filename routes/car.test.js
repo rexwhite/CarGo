@@ -31,7 +31,9 @@ describe('Car Routes - Print Functionality', () => {
     make: 'Toyota',
     model: 'Corolla',
     year: 2020,
-    mileage: 50000
+    mileage: 50000,
+    vin: 'VIN1234567890',
+    license_plate: 'TEST-PLATE'
   };
 
   const mockEvents = [
@@ -61,6 +63,8 @@ describe('Car Routes - Print Functionality', () => {
       expect(response.status).toBe(200);
       expect(response.text).toContain('My Car');
       expect(response.text).toContain('(2020 Toyota Corolla)');
+      expect(response.text).toContain('VIN1234567890');
+      expect(response.text).toContain('TEST-PLATE');
       expect(response.text).toContain('45,000 mi');
       expect(response.text).toContain('Oil Change');
       expect(response.text).toContain('Mechanic A');
@@ -97,6 +101,8 @@ describe('Car Routes - Print Functionality', () => {
       expect(response.status).toBe(200);
       expect(response.text).toContain('My Car');
       expect(response.text).toContain('(2020 Toyota Corolla)');
+      expect(response.text).toContain('VIN1234567890');
+      expect(response.text).toContain('TEST-PLATE');
       expect(response.text).toContain('45,000 mi');
       expect(response.text).toContain('Oil Change');
       expect(response.text).toContain('Mechanic A');

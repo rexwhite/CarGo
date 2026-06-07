@@ -27,8 +27,8 @@ module.exports = (pool) => {
       const eventsResult = await pool.query(
         `SELECT se.*, sei.id AS sei_id, sei.service_item_id, si.title AS service_item_title, sei.notes AS item_notes
          FROM service_events se
-         JOIN service_event_items sei ON sei.event_id = se.id
-         JOIN service_items si ON si.id = sei.service_item_id
+         LEFT JOIN service_event_items sei ON sei.event_id = se.id
+         LEFT JOIN service_items si ON si.id = sei.service_item_id
          WHERE se.car_id = $1
          ORDER BY se.date DESC, se.id DESC, sei.id`,
         [carId]
@@ -51,12 +51,14 @@ module.exports = (pool) => {
             items: [],
           });
         }
-        eventMap.get(row.id).items.push({
-          id: row.sei_id,
-          service_item_id: row.service_item_id,
-          service_item_title: row.service_item_title,
-          notes: row.item_notes,
-        });
+        if (row.sei_id) {
+          eventMap.get(row.id).items.push({
+            id: row.sei_id,
+            service_item_id: row.service_item_id,
+            service_item_title: row.service_item_title,
+            notes: row.item_notes,
+          });
+        }
       }
       const serviceEvents = Array.from(eventMap.values());
 

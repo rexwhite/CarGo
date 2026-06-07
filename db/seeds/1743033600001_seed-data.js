@@ -3,10 +3,10 @@
  */
 exports.up = (pgm) => {
   pgm.sql(`
-    INSERT INTO cars (name, make, model, year, mileage) VALUES
-      ('Daily Driver', 'Toyota', 'Camry', 2018, 45230),
-      ('Weekend Cruiser', 'Honda', 'Civic', 2020, 12500),
-      ('Old Reliable', 'Ford', 'F-150', 2015, 89300);
+    INSERT INTO cars (name, make, model, year, mileage, vin, license_plate) VALUES
+      ('Daily Driver', 'Toyota', 'Camry', 2018, 45230, '1ABC234567890DEFG', 'ABC-1234'),
+      ('Weekend Cruiser', 'Honda', 'Civic', 2020, 12500, '2H1GH567890JKLMNO', 'CRUISIN'),
+      ('Old Reliable', 'Ford', 'F-150', 2015, 89300, NULL, 'PLOW-TRK');
 
     INSERT INTO service_items (car_id, title, description, mileage_interval, month_interval) VALUES
       (1, 'Oil Change', 'Replace engine oil and filter', 5000, 6),
@@ -67,9 +67,6 @@ exports.up = (pgm) => {
  */
 exports.down = (pgm) => {
   pgm.sql(`
-    DELETE FROM service_event_items;
-    DELETE FROM service_events;
-    DELETE FROM service_items;
-    DELETE FROM cars;
+    TRUNCATE cars RESTART IDENTITY CASCADE;
   `);
 };
