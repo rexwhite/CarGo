@@ -97,21 +97,60 @@ body {
 
 .car-details-card {
   background-color: #ffffff;
-  padding: 30px;
+  padding: 20px 30px;
   border-radius: 10px;
   max-width: 600px;
   margin: 0 auto;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   color: #000000;
   align-self: center;
+  transition: padding 0.3s ease;
+}
+
+.car-details-card:has(.collapsible-header[aria-expanded="true"]) {
+  padding: 30px;
 }
 
 .car-details-card h2 {
   margin-top: 0;
+  margin-bottom: 0;
   color: #282c34;
+  border-bottom: 2px solid transparent;
+  padding-bottom: 6px;
+  transition: border-bottom-color 0.3s ease, padding-bottom 0.3s ease, margin-bottom 0.3s ease;
+}
+
+.car-details-card h2[aria-expanded="true"] {
   border-bottom: 2px solid #61dafb;
   padding-bottom: 10px;
+  margin-bottom: 1rem;
 }
+
+.collapsible-header {
+  cursor: pointer;
+  user-select: none;
+}
+
+.collapsible-header:hover {
+  background-color: #f8f9fa;
+  border-radius: 5px;
+}
+
+.collapsible-header .collapse-icon {
+  transition: transform 0.2s ease;
+  display: inline-block;
+  font-size: 0.8em;
+  vertical-align: middle;
+}
+
+.collapsible-header[aria-expanded="true"] .collapse-icon {
+  transform: rotate(90deg);
+}
+
+.print-button-container {
+  margin-top: -4px;
+}
+
 
 .car-details-info {
   display: grid;
@@ -359,8 +398,17 @@ body {
     max-width: 100% !important;
     width: 100% !important;
     margin-bottom: 2rem !important;
+    padding: 30px !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+
+  #carDetailsCollapse.collapse {
+    display: block !important;
+  }
+
+  .collapse-icon {
+    display: none !important;
   }
 
   .card {

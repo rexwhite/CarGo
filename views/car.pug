@@ -4,30 +4,32 @@ block content
   .App.App--top
     main(style="padding: 40px 20px 20px;")
       .car-details-card
-        h2.text-center.position-relative
+        h2.text-center.position-relative.collapsible-header(data-bs-toggle="collapse" data-bs-target="#carDetailsCollapse" aria-expanded="false" aria-controls="carDetailsCollapse")
+          i.bi.bi-chevron-right.collapse-icon.position-absolute.start-0.top-50.translate-middle-y
           span#car-name-display= car.name
-          .d-print-none.position-absolute.top-0.end-0
-            a.btn.btn-outline-secondary.btn-sm(href=`/car/${car.id}/print` target="_blank")
+          .d-print-none.position-absolute.top-50.end-0.translate-middle-y.print-button-container
+            a.btn.btn-outline-secondary.btn-sm(href=`/car/${car.id}/print` target="_blank" onclick="event.stopPropagation()")
               i.bi.bi-printer
-        dl.car-details-info
-          div
-            dt Make
-            dd= car.make
-          div
-            dt Year
-            dd= car.year
-          div
-            dt Model
-            dd= car.model
-          div
-            dt VIN
-            dd#car-vin-display= car.vin || 'N/A'
-          div
-            dt Mileage
-            dd#car-mileage-display= car.mileage.toLocaleString() + ' mi'
-          div
-            dt License
-            dd#car-license-display= car.license_plate || 'N/A'
+        #carDetailsCollapse.collapse
+          dl.car-details-info
+            div
+              dt Make
+              dd= car.make
+            div
+              dt Year
+              dd= car.year
+            div
+              dt Model
+              dd= car.model
+            div
+              dt VIN
+              dd#car-vin-display= car.vin || 'N/A'
+            div
+              dt Mileage
+              dd#car-mileage-display= car.mileage.toLocaleString() + ' mi'
+            div
+              dt License
+              dd#car-license-display= car.license_plate || 'N/A'
 
     .service-section
         ul#serviceTabs.nav.nav-tabs.mb-3(role="tablist")
