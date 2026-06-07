@@ -463,6 +463,10 @@ block content
 
     let currentEventRow = null;
 
+    document.getElementById('serviceEventModal').addEventListener('shown.bs.modal', () => {
+      document.getElementById('serviceEventDate').focus();
+    });
+
     const ADD_NEW_SENTINEL = '__add_new__';
 
     function buildItemSelect(serviceItemId) {
@@ -620,6 +624,9 @@ block content
       if (!rowOrNull) {
         document.getElementById('serviceEventDate').value = new Date().toISOString().split('T')[0];
         addEventItemRow();
+        if (allServiceEvents.length > 0) {
+          document.getElementById('serviceEventPerformedBy').value = allServiceEvents[0].performed_by || '';
+        }
       } else {
         const d = rowOrNull.dataset;
         document.getElementById('serviceEventId').value = d.id;
