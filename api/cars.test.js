@@ -96,7 +96,7 @@ describe('POST /api/cars', () => {
   });
 
   test('should create a new car', async () => {
-    const newCar = { name: 'Stang', make: 'Ford', model: 'Mustang', year: 2022, mileage: 5000, vin: '12345678901234567', license_plate: 'PLATE1' };
+    const newCar = { name: 'Stang', make: 'Ford', model: 'Mustang', year: 2022, mileage: 5000, vin: '12345678901234567', license_plate: 'PLATE1', theme_color: '#61dafb' };
     const createdCar = { id: 3, ...newCar };
 
     mockPool.query.mockResolvedValue({ rows: [createdCar] });
@@ -108,8 +108,8 @@ describe('POST /api/cars', () => {
     expect(response.status).toBe(201);
     expect(response.body).toEqual(createdCar);
     expect(mockPool.query).toHaveBeenCalledWith(
-      'INSERT INTO cars (name, make, model, year, mileage, vin, license_plate) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [newCar.name, newCar.make, newCar.model, newCar.year, newCar.mileage, newCar.vin, newCar.license_plate]
+      'INSERT INTO cars (name, make, model, year, mileage, vin, license_plate, theme_color) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      [newCar.name, newCar.make, newCar.model, newCar.year, newCar.mileage, newCar.vin, newCar.license_plate, newCar.theme_color]
     );
   });
 
@@ -134,19 +134,19 @@ describe('PUT /api/cars/:id', () => {
   });
 
   test('should update an existing car', async () => {
-    const updatedCar = { id: 1, name: 'Daily Driver', make: 'Toyota', model: 'Camry', year: 2021, mileage: 26000, vin: 'VIN123', license_plate: 'ABC-123' };
+    const updatedCar = { id: 1, name: 'Daily Driver', make: 'Toyota', model: 'Camry', year: 2021, mileage: 26000, vin: 'VIN123', license_plate: 'ABC-123', theme_color: '#ff0000' };
 
     mockPool.query.mockResolvedValue({ rows: [updatedCar] });
 
     const response = await request(app)
       .put('/api/cars/1')
-      .send({ name: 'Daily Driver', make: 'Toyota', model: 'Camry', year: 2021, mileage: 26000, vin: 'VIN123', license_plate: 'ABC-123' });
+      .send({ name: 'Daily Driver', make: 'Toyota', model: 'Camry', year: 2021, mileage: 26000, vin: 'VIN123', license_plate: 'ABC-123', theme_color: '#ff0000' });
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual(updatedCar);
     expect(mockPool.query).toHaveBeenCalledWith(
-      'UPDATE cars SET name = $1, make = $2, model = $3, year = $4, mileage = $5, vin = $6, license_plate = $7, updated_at = CURRENT_TIMESTAMP WHERE id = $8 RETURNING *',
-      ['Daily Driver', 'Toyota', 'Camry', 2021, 26000, 'VIN123', 'ABC-123', '1']
+      'UPDATE cars SET name = $1, make = $2, model = $3, year = $4, mileage = $5, vin = $6, license_plate = $7, theme_color = $8, updated_at = CURRENT_TIMESTAMP WHERE id = $9 RETURNING *',
+      ['Daily Driver', 'Toyota', 'Camry', 2021, 26000, 'VIN123', 'ABC-123', '#ff0000', '1']
     );
   });
 

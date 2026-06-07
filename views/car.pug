@@ -4,11 +4,12 @@ block content
   .App.App--top
     main(style="padding: 40px 20px 20px;")
       .car-details-card
-        h2.text-center.position-relative.collapsible-header(data-bs-toggle="collapse" data-bs-target="#carDetailsCollapse" aria-expanded="false" aria-controls="carDetailsCollapse")
-          i.bi.bi-chevron-right.collapse-icon.position-absolute.start-0.top-50.translate-middle-y
-          span#car-name-display= car.name
+        .position-relative
+          h2.text-center.position-relative.collapsible-header(data-bs-toggle="collapse" data-bs-target="#carDetailsCollapse" aria-expanded="false" aria-controls="carDetailsCollapse" style=`--theme-color: ${car.theme_color || '#61dafb'}`)
+            i.bi.bi-chevron-right.collapse-icon.position-absolute.start-0.top-50.translate-middle-y
+            span#car-name-display= car.name
           .d-print-none.position-absolute.top-50.end-0.translate-middle-y.print-button-container
-            a.btn.btn-outline-secondary.btn-sm(href=`/car/${car.id}/print` target="_blank" onclick="event.stopPropagation()")
+            a.btn.btn-outline-secondary.btn-sm(href=`/car/${car.id}/print` target="_blank")
               i.bi.bi-printer
         #carDetailsCollapse.collapse
           dl.car-details-info
@@ -165,6 +166,9 @@ block content
               .col-md-6.mb-3
                 label.form-label(for="carLicensePlate") License Plate
                 input#carLicensePlate.form-control(type="text", name="license_plate", maxlength="20")
+            .mb-3
+              label.form-label(for="carThemeColor") Theme Color
+              input#carThemeColor.form-control.form-control-color(type="color", name="theme_color", value="#61dafb", title="Choose your theme color")
         .modal-footer
           button#deleteCarBtn.btn.btn-danger.me-auto(type="button") Delete
           button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancel
@@ -853,6 +857,7 @@ block content
       document.getElementById('carMileage').value = currentCar.mileage;
       document.getElementById('carVIN').value = currentCar.vin || '';
       document.getElementById('carLicensePlate').value = currentCar.license_plate || '';
+      document.getElementById('carThemeColor').value = currentCar.theme_color || '#61dafb';
       bootstrap.Modal.getOrCreateInstance(document.getElementById('carModal')).show();
     });
 
@@ -876,6 +881,7 @@ block content
         mileage: document.getElementById('carMileage').value,
         vin: orNull(document.getElementById('carVIN').value),
         license_plate: orNull(document.getElementById('carLicensePlate').value),
+        theme_color: document.getElementById('carThemeColor').value,
       };
       try {
         const res = await fetch(`/api/cars/${CAR_ID}`, {
@@ -895,6 +901,7 @@ block content
         document.getElementById('car-vin-display').textContent = car.vin || 'N/A';
         document.getElementById('car-license-display').textContent = car.license_plate || 'N/A';
         document.getElementById('car-mileage-display').textContent = Number(car.mileage).toLocaleString() + ' mi';
+        document.querySelector('.car-details-card h2').style.setProperty('--theme-color', car.theme_color);
         bootstrap.Modal.getInstance(document.getElementById('carModal')).hide();
       } catch (err) {
         alert('Failed to save: ' + err.message);

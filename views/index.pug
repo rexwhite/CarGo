@@ -61,6 +61,9 @@ block content
               .col-md-6.mb-3
                 label.form-label(for="newCarLicensePlate") License Plate
                 input#newCarLicensePlate.form-control(type="text", name="license_plate", maxlength="20")
+            .mb-3
+              label.form-label(for="newCarThemeColor") Theme Color
+              input#newCarThemeColor.form-control.form-control-color(type="color", name="theme_color", value="#61dafb", title="Choose your theme color")
         .modal-footer
           button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancel
           button#newCarSaveBtn.btn.btn-primary(type="button") Save
@@ -82,6 +85,7 @@ block content
         mileage: document.getElementById('newCarMileage').value,
         vin: orNull(document.getElementById('newCarVIN').value),
         license_plate: orNull(document.getElementById('newCarLicensePlate').value),
+        theme_color: document.getElementById('newCarThemeColor').value,
       };
       try {
         const res = await fetch('/api/cars', {
