@@ -74,13 +74,13 @@ block content
                           else
                             = new Date(item.projected_date).toLocaleDateString()
                         else
-                          | N/A
+                          | -
                       td= item.title
-                      td(class=item.description ? '' : 'text-center')= item.description || 'N/A'
-                      td(class=item.mileage_interval ? '' : 'text-center')= item.mileage_interval ? item.mileage_interval.toLocaleString() + ' mi' : 'N/A'
-                      td(class=item.month_interval ? '' : 'text-center')= item.month_interval ? item.month_interval + ' months' : 'N/A'
-                      td(class=item.specific_mileage ? '' : 'text-center')= item.specific_mileage ? item.specific_mileage.toLocaleString() + ' mi' : 'N/A'
-                      td(class=item.specific_date ? '' : 'text-center')= item.specific_date ? new Date(item.specific_date).toLocaleDateString() : 'N/A'
+                      td(class=item.description ? '' : 'text-center')= item.description || '-'
+                      td(class=item.mileage_interval ? '' : 'text-center')= item.mileage_interval ? item.mileage_interval.toLocaleString() + ' mi' : '-'
+                      td(class=item.month_interval ? '' : 'text-center')= item.month_interval ? item.month_interval + ' months' : '-'
+                      td(class=item.specific_mileage ? '' : 'text-center')= item.specific_mileage ? item.specific_mileage.toLocaleString() + ' mi' : '-'
+                      td(class=item.specific_date ? '' : 'text-center')= item.specific_date ? new Date(item.specific_date).toLocaleDateString() : '-'
 
           .tab-pane.fade#history(role="tabpanel", aria-labelledby="history-tab")
             if serviceEvents.length === 0
@@ -274,24 +274,24 @@ block content
       row.dataset.specificDate = item.specific_date ? new Date(item.specific_date).toISOString().split('T')[0] : '';
       const cells = row.querySelectorAll('td');
       // cells[0] is expand toggle — skip
-      // cells[1] is Projected Date — leave it as-is (set by server or left as N/A for new items)
+      // cells[1] is Projected Date — leave it as-is (set by server or left as - for new items)
       cells[2].textContent = item.title;
       cells[3].className = item.description ? '' : 'text-center';
-      cells[3].textContent = item.description || 'N/A';
+      cells[3].textContent = item.description || '-';
       cells[4].className = item.mileage_interval ? '' : 'text-center';
-      cells[4].textContent = item.mileage_interval ? Number(item.mileage_interval).toLocaleString() + ' mi' : 'N/A';
+      cells[4].textContent = item.mileage_interval ? Number(item.mileage_interval).toLocaleString() + ' mi' : '-';
       cells[5].className = item.month_interval ? '' : 'text-center';
-      cells[5].textContent = item.month_interval ? item.month_interval + ' months' : 'N/A';
+      cells[5].textContent = item.month_interval ? item.month_interval + ' months' : '-';
       cells[6].className = item.specific_mileage ? '' : 'text-center';
-      cells[6].textContent = item.specific_mileage ? Number(item.specific_mileage).toLocaleString() + ' mi' : 'N/A';
+      cells[6].textContent = item.specific_mileage ? Number(item.specific_mileage).toLocaleString() + ' mi' : '-';
       cells[7].className = item.specific_date ? '' : 'text-center';
-      cells[7].textContent = item.specific_date ? new Date(item.specific_date).toLocaleDateString() : 'N/A';
+      cells[7].textContent = item.specific_date ? new Date(item.specific_date).toLocaleDateString() : '-';
     }
 
     function makeItemRow(item) {
       const row = document.createElement('tr');
       row.className = 'service-item-row';
-      row.innerHTML = '<td class="text-center"><button class="expand-toggle" type="button">▶</button></td><td class="text-center">N/A</td><td></td><td></td><td></td><td></td><td></td><td></td>';
+      row.innerHTML = '<td class="text-center"><button class="expand-toggle" type="button">▶</button></td><td class="text-center">-</td><td></td><td></td><td></td><td></td><td></td><td></td>';
       populateItemRowFromData(row, item);
       attachItemRowHandler(row);
       return row;
