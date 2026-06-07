@@ -69,10 +69,7 @@ block content
                         button.expand-toggle(type="button") ▶
                       td.text-center
                         if item.projected_date
-                          if new Date(item.projected_date) > new Date(new Date().getTime() + 365 * 86400000)
-                            | --
-                          else
-                            = new Date(item.projected_date).toLocaleDateString()
+                          = new Date(item.projected_date).toLocaleDateString()
                         else
                           | -
                       td= item.title

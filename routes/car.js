@@ -85,13 +85,10 @@ module.exports = (pool) => {
       // Tag each item with urgency status based on projected date
       const now = new Date();
       const in30Days = new Date(now.getTime() + 30 * 86400000);
-      const inOneYear = new Date(now.getTime() + 365 * 86400000);
 
       for (const item of serviceItems) {
         if (!item.projected_date) {
           item.urgency = 'unknown';
-        } else if (new Date(item.projected_date) > inOneYear) {
-          item.urgency = 'distant';
         } else if (new Date(item.projected_date) <= now) {
           item.urgency = 'overdue';
         } else if (new Date(item.projected_date) <= in30Days) {
@@ -101,17 +98,11 @@ module.exports = (pool) => {
         }
       }
 
-      // Sort scheduled items by projected date, nulls and distant items last
+      // Sort scheduled items by projected date, nulls last
       serviceItems.sort((a, b) => {
         if (!a.projected_date && !b.projected_date) return 0;
         if (!a.projected_date) return 1;
         if (!b.projected_date) return -1;
-
-        const aDistant = new Date(a.projected_date) > inOneYear;
-        const bDistant = new Date(b.projected_date) > inOneYear;
-
-        if (aDistant && !bDistant) return 1;
-        if (!aDistant && bDistant) return -1;
 
         return new Date(a.projected_date) - new Date(b.projected_date);
       });
